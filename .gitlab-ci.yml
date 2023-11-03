@@ -1,0 +1,78 @@
+---
+stages:
+  - install
+  - build
+  - publish
+  - docker
+  - post
+
+variables:
+  GO_VERSION: "1.21-alpine"
+  DOCKER_IMAGE_NAME: cenk1cenk2/vizier
+
+include:
+  - project: devops/pipes
+    file: /templates/go.gitlab-ci.yml
+
+  - project: devops/pipes
+    file: /templates/v2/semantic-release.gitlab-ci.yml
+
+  - project: devops/pipes
+    file: /templates/v2/docker-build-dockerhub.gitlab-ci.yml
+
+  - project: devops/pipes
+    file: /templates/v2/docker-manifest-dockerhub.gitlab-ci.yml
+
+  - project: devops/pipes
+    file: /templates/v2/update-docker-hub-readme.gitlab-ci.yml
+
+semantic-release:
+  stage: publish
+  artifacts:
+    paths:
+      - .tags
+      - version.go
+
+docker-build:
+  stage: docker
+  extends: .docker-build-dockerhub
+  variables:
+    TAGS_FILE: .tags
+    DOCKER_IMAGE_TAGS_TEMPLATE: |
+      [
+        {
+          "match": ".*",
+          "template": "{{ index $ 1 }}-$GITLAB_CI_ARCH"
+        }
+      ]
+    DOCKER_MANIFEST_TARGET: "{{ ( . | join(',') ) | replace '-$GITLAB_CI_ARCH' '' }}"
+  parallel:
+    matrix:
+      - GITLAB_CI_ARCH:
+          - amd64
+          - arm64
+  dependencies:
+    - build
+  only:
+    refs:
+      - main
+
+docker-manifest:
+  stage: post
+  extends: .docker-manifest-dockerhub
+  dependencies:
+    - docker-build
+  only:
+    refs:
+      - main
+
+update-docker-hub-readme:
+  stage: post
+  extends: .update-docker-hub-readme
+  variables:
+    README_DESCRIPTION: |
+      A very basic and dirty supervisor for multiple tasks running inside a Docker container.
+  dependencies: []
+  only:
+    refs:
+      - main
