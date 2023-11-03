@@ -30,7 +30,7 @@ module.exports = {
             to: 'const VERSION = "v${nextRelease.version}"',
             results: [
               {
-                file: "version/v.go",
+                file: "version.go",
                 hasChanged: true,
                 numMatches: 1,
                 numReplacements: 1,
