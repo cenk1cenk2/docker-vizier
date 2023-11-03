@@ -1,3 +1,10 @@
+## [1.0.1](https://gitlab.kilic.dev/docker/vizier/compare/v1.0.0...v1.0.1) (2023-11-03)
+
+
+### Bug Fixes
+
+* update build configuration ([287a9f1](https://gitlab.kilic.dev/docker/vizier/commit/287a9f102615bd8656d9a9e2b7c889a55c1dc441))
+
 # 1.0.0 (2023-11-03)
 
 
