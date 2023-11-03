@@ -9,6 +9,7 @@ stages:
 variables:
   GO_VERSION: 1.21-alpine
   DOCKER_IMAGE_NAME: cenk1cenk2/vizier
+  LOG_LEVEL: trace
 
 include:
   - project: devops/pipes
