@@ -46,7 +46,7 @@ docker-build:
           "template": "{{ index $ 1 }}-$GITLAB_CI_ARCH"
         }
       ]
-    DOCKER_MANIFEST_TARGET: "{{ ($ | join(',')) | replace '-$GITLAB_CI_ARCH' '' }}"
+    DOCKER_MANIFEST_TARGET: "{{ $ | join(',') | replace '-$GITLAB_CI_ARCH' '' }}"
   parallel:
     matrix:
       - GITLAB_CI_ARCH:
