@@ -27,6 +27,7 @@ include:
     file: /templates/v2/update-docker-hub-readme.gitlab-ci.yml
 
 semantic-release:
+  extends: .semantic-release
   stage: publish
   artifacts:
     paths:
