@@ -7,7 +7,7 @@ stages:
   - post
 
 variables:
-  GO_VERSION: "1.21-alpine"
+  GO_VERSION: 1.21-alpine
   DOCKER_IMAGE_NAME: cenk1cenk2/vizier
 
 include:
@@ -42,11 +42,11 @@ docker-build:
     DOCKER_IMAGE_TAGS_TEMPLATE: |
       [
         {
-          "match": ".*",
+          "match": "(.*)",
           "template": "{{ index $ 1 }}-$GITLAB_CI_ARCH"
         }
       ]
-    DOCKER_MANIFEST_TARGET: "{{ ( . | join(',') ) | replace '-$GITLAB_CI_ARCH' '' }}"
+    DOCKER_MANIFEST_TARGET: "{{ ($ | join(',')) | replace '-$GITLAB_CI_ARCH' '' }}"
   parallel:
     matrix:
       - GITLAB_CI_ARCH:
