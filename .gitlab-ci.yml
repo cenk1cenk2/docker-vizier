@@ -2,7 +2,6 @@
 stages:
   - install
   - build
-  - publish
   - docker
   - post
 
@@ -15,9 +14,6 @@ include:
     file: /templates/go.gitlab-ci.yml
 
   - project: devops/pipes
-    file: /templates/v2/semantic-release.gitlab-ci.yml
-
-  - project: devops/pipes
     file: /templates/v2/docker-build-dockerhub.gitlab-ci.yml
 
   - project: devops/pipes
@@ -25,14 +21,6 @@ include:
 
   - project: devops/pipes
     file: /templates/v2/update-docker-hub-readme.gitlab-ci.yml
-
-semantic-release:
-  extends: .semantic-release
-  stage: publish
-  artifacts:
-    paths:
-      - .tags
-      - version.go
 
 docker-build:
   stage: docker
@@ -47,25 +35,18 @@ docker-build:
           - arm64
   dependencies:
     - build
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      exists:
-        - .tags
-      when: always
-    - when: never
+  only:
+    refs:
+      - main
 
 docker-manifest:
   stage: post
   extends: .docker-manifest-dockerhub
   dependencies:
     - docker-build
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      exists:
-        - .tags
-      when: always
-    - when: never
-  only: null
+  only:
+    refs:
+      - main
 
 update-docker-hub-readme:
   stage: post
@@ -74,10 +55,6 @@ update-docker-hub-readme:
     README_DESCRIPTION: |
       A very basic and dirty supervisor for multiple tasks running inside a Docker container.
   dependencies: []
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      exists:
-        - .tags
-      when: always
-    - when: never
-  only: null
+  only:
+    refs:
+      - main

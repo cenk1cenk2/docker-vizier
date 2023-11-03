@@ -18,15 +18,21 @@ some description
 
 <!-- clidocs -->
 
-| Flag / Environment | Description        | Type     | Required | Default |
-| ------------------ | ------------------ | -------- | -------- | ------- |
-| `$DEFAULT_FLAG`    | Some default flag. | `String` | `false`  |         |
+| Flag / Environment |  Description   |  Type    | Required | Default |
+|---------------- | --------------- | --------------- |  --------------- |  --------------- |
+| `$VIZIER_STEPS` | Steps to run for the application, will be ignored when configuration file is read. | `String`<br/>`json([]struct{})` | `false` |  |
 
 ### CLI
 
-| Flag / Environment | Description                               | Type                                                                    | Required | Default |
-| ------------------ | ----------------------------------------- | ----------------------------------------------------------------------- | -------- | ------- |
-| `$LOG_LEVEL`       | Define the log level for the application. | `String`<br/>`enum("panic", "fatal", "warn", "info", "debug", "trace")` | `false`  | info    |
-| `$ENV_FILE`        | Environment files to inject.              | `StringSlice`                                                           | `false`  |         |
+| Flag / Environment |  Description   |  Type    | Required | Default |
+|---------------- | --------------- | --------------- |  --------------- |  --------------- |
+| `$LOG_LEVEL` | Define the log level for the application. | `String`<br/>`enum("panic", "fatal", "warn", "info", "debug", "trace")` | `false` | info |
+| `$ENV_FILE` | Environment files to inject. | `StringSlice` | `false` |  |
+
+### Config
+
+| Flag / Environment |  Description   |  Type    | Required | Default |
+|---------------- | --------------- | --------------- |  --------------- |  --------------- |
+| `$VIZIER_CONFIG` | Configuration file to read from. | `String` | `false` |  |
 
 <!-- clidocsstop -->
