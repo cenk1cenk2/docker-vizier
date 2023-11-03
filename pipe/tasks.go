@@ -30,6 +30,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 											AppendEnvironment(s.Environment).
 											SetDir(s.Cwd).
 											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
+											EnableTerminator().
 											AddSelfToTheTask()
 									}(command)
 								}
