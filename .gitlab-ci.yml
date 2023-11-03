@@ -39,15 +39,8 @@ docker-build:
   stage: docker
   extends: .docker-build-dockerhub
   variables:
-    TAGS_FILE: .tags
-    DOCKER_IMAGE_TAGS_TEMPLATE: |
-      [
-        {
-          "match": "(.*)",
-          "template": "{{ index $ 1 }}-$GITLAB_CI_ARCH"
-        }
-      ]
-    DOCKER_MANIFEST_TARGET: "{{ $ | join(',') | replace '-$GITLAB_CI_ARCH' '' }}"
+    DOCKER_IMAGE_TAGS: latest-$GITLAB_CI_ARCH
+    DOCKER_MANIFEST_TARGET: latest
   parallel:
     matrix:
       - GITLAB_CI_ARCH:
