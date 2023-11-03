@@ -47,11 +47,9 @@ docker-build:
           - arm64
   dependencies:
     - build
-  only:
-    refs:
-      - main
   rules:
-    - exists:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      exists:
         - .tags
       when: always
     - when: never
@@ -61,11 +59,9 @@ docker-manifest:
   extends: .docker-manifest-dockerhub
   dependencies:
     - docker-build
-  only:
-    refs:
-      - main
   rules:
-    - exists:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      exists:
         - .tags
       when: always
     - when: never
@@ -77,11 +73,9 @@ update-docker-hub-readme:
     README_DESCRIPTION: |
       A very basic and dirty supervisor for multiple tasks running inside a Docker container.
   dependencies: []
-  only:
-    refs:
-      - main
   rules:
-    - exists:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      exists:
         - .tags
       when: always
     - when: never
