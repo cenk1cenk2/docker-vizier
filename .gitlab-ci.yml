@@ -65,6 +65,7 @@ docker-manifest:
         - .tags
       when: always
     - when: never
+  only: null
 
 update-docker-hub-readme:
   stage: post
@@ -79,3 +80,4 @@ update-docker-hub-readme:
         - .tags
       when: always
     - when: never
+  only: null
