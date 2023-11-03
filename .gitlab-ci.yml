@@ -51,6 +51,11 @@ docker-build:
   only:
     refs:
       - main
+  rules:
+    - exists:
+        - .tags
+      when: always
+    - when: never
 
 docker-manifest:
   stage: post
@@ -60,6 +65,11 @@ docker-manifest:
   only:
     refs:
       - main
+  rules:
+    - exists:
+        - .tags
+      when: always
+    - when: never
 
 update-docker-hub-readme:
   stage: post
@@ -71,3 +81,8 @@ update-docker-hub-readme:
   only:
     refs:
       - main
+  rules:
+    - exists:
+        - .tags
+      when: always
+    - when: never
