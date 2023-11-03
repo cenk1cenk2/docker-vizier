@@ -21,7 +21,7 @@ module.exports = {
     "@semantic-release/commit-analyzer",
     "@semantic-release/release-notes-generator",
     [
-      "@google/semantic-release-replace-plugin",
+      "semantic-release-replace-plugin",
       {
         replacements: [
           {
