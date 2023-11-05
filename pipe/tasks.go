@@ -2,6 +2,7 @@ package pipe
 
 import (
 	"strings"
+	"syscall"
 
 	. "gitlab.kilic.dev/libraries/plumber/v4"
 )
@@ -15,9 +16,10 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 					ShouldRunAfter(func(t *Task[Pipe]) error {
 						return t.RunSubtasks()
 					}).
+					EnableTerminator().
 					AddSelfToTheParentAsSequence()
 
-					// multiple elements in a step run as parallel
+				// multiple elements in a step run as parallel
 				for _, s := range step {
 					func(s Step) {
 						st.CreateSubtask(s.Name).
@@ -42,6 +44,15 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 													c.SetIgnoreError()
 												}
 
+												c.Command.SysProcAttr = &syscall.SysProcAttr{}
+
+												if s.Syscall.Enable {
+													c.Command.SysProcAttr.Credential = &syscall.Credential{
+														Uid: s.Syscall.Uid,
+														Gid: s.Syscall.Gid,
+													}
+												}
+
 												return nil
 											}).
 											AppendEnvironment(s.Environment).
@@ -61,6 +72,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 							ShouldRunAfter(func(t *Task[Pipe]) error {
 								return t.RunCommandJobAsJobSequence()
 							}).
+							EnableTerminator().
 							AddSelfToTheParentAsParallel()
 					}(s)
 				}
@@ -68,6 +80,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 
 			return nil
 		}).
+		EnableTerminator().
 		ShouldRunAfter(func(t *Task[Pipe]) error {
 			return t.RunSubtasks()
 		})
