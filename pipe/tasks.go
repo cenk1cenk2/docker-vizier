@@ -30,17 +30,23 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 											AppendEnvironment(s.Environment).
 											SetDir(s.Cwd).
 											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
+											SetLogLevel(s.Log.Stdout, s.Log.Stderr, s.Log.Lifetime).
+											Set(func(c *Command[Pipe]) error {
+												if s.IgnoreError {
+													c.SetIgnoreError()
+												}
+
+												return nil
+											}).
 											EnableTerminator().
 											AddSelfToTheTask()
 									}(command)
 								}
 
-								if s.Delay.Duration > 0 {
-									t.SetJobWrapper(func(job Job) Job {
-										return TL.JobDelay(job, s.Delay.Duration)
-									})
-								}
 								return nil
+							}).
+							SetJobWrapper(func(job Job) Job {
+								return TL.JobDelay(job, s.Delay.Duration)
 							}).
 							ShouldRunAfter(func(t *Task[Pipe]) error {
 								return t.RunCommandJobAsJobSequence()
