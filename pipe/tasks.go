@@ -36,23 +36,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									func(command string) {
 										c := strings.Split(command, " ")
 
-										if s.Log.Lifetime == LOG_LEVEL_DEFAULT {
-											s.Log.Lifetime = LOG_LEVEL_INFO
-										}
-
 										t.CreateCommand(c[0], c[1:]...).
-											ShouldRunBefore(func(c *Command[Pipe]) error {
-												c.Log.WithField(LOG_FIELD_STATUS, "RUN").
-													Logf(s.Log.Lifetime, "%s", command)
-
-												return nil
-											}).
-											ShouldRunAfter(func(c *Command[Pipe]) error {
-												c.Log.WithField(LOG_FIELD_STATUS, "END").
-													Logf(s.Log.Lifetime, "%s", command)
-
-												return nil
-											}).
 											Set(func(c *Command[Pipe]) error {
 												if s.IgnoreError {
 													c.SetIgnoreError()
@@ -63,7 +47,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 											AppendEnvironment(s.Environment).
 											SetDir(s.Cwd).
 											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
-											SetLogLevel(s.Log.Stdout, s.Log.Stderr, LOG_LEVEL_DEBUG).
+											SetLogLevel(s.Log.Stdout, s.Log.Stderr, s.Log.Lifetime).
 											EnableTerminator().
 											AddSelfToTheTask()
 									}(command)
