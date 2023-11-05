@@ -21,16 +21,38 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 				for _, s := range step {
 					func(s Step) {
 						st.CreateSubtask(s.Name).
+							ShouldRunBefore(func(t *Task[Pipe]) error {
+								if s.Delay.Duration > 0 {
+									t.Log.Warnf(
+										"Task was delayed: %s",
+										s.Delay.String(),
+									)
+								}
+
+								return nil
+							}).
 							Set(func(t *Task[Pipe]) error {
 								for _, command := range s.Commands {
 									func(command string) {
 										c := strings.Split(command, " ")
 
+										if s.Log.Lifetime == LOG_LEVEL_DEFAULT {
+											s.Log.Lifetime = LOG_LEVEL_TRACE
+										}
+
 										t.CreateCommand(c[0], c[1:]...).
-											AppendEnvironment(s.Environment).
-											SetDir(s.Cwd).
-											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
-											SetLogLevel(s.Log.Stdout, s.Log.Stderr, s.Log.Lifetime).
+											ShouldRunBefore(func(c *Command[Pipe]) error {
+												c.Log.WithField(LOG_FIELD_STATUS, "RUN").
+													Logf(s.Log.Lifetime, "%s", strings.Join(c.Command.Args, " "))
+
+												return nil
+											}).
+											ShouldRunAfter(func(c *Command[Pipe]) error {
+												c.Log.WithField(LOG_FIELD_STATUS, "END").
+													Logf(s.Log.Lifetime, "%s", strings.Join(c.Command.Args, " "))
+
+												return nil
+											}).
 											Set(func(c *Command[Pipe]) error {
 												if s.IgnoreError {
 													c.SetIgnoreError()
@@ -38,6 +60,10 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 
 												return nil
 											}).
+											AppendEnvironment(s.Environment).
+											SetDir(s.Cwd).
+											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
+											SetLogLevel(s.Log.Stdout, s.Log.Stderr, LOG_LEVEL_DEBUG).
 											EnableTerminator().
 											AddSelfToTheTask()
 									}(command)
