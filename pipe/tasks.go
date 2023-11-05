@@ -36,6 +36,10 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									func(command string) {
 										c := strings.Split(command, " ")
 
+										if s.Log.Lifetime == LOG_LEVEL_DEFAULT {
+											s.Log.Lifetime = LOG_LEVEL_INFO
+										}
+
 										t.CreateCommand(c[0], c[1:]...).
 											ShouldRunBefore(func(c *Command[Pipe]) error {
 												c.Log.WithField(LOG_FIELD_STATUS, "RUN").
