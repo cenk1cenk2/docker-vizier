@@ -46,9 +46,11 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 
 												c.Command.SysProcAttr = &syscall.SysProcAttr{}
 
-												c.Command.SysProcAttr.Credential = &syscall.Credential{
-													Uid: s.RunAs.Uid,
-													Gid: s.RunAs.Gid,
+												if s.RunAs.Enable {
+													c.Command.SysProcAttr.Credential = &syscall.Credential{
+														Uid: s.RunAs.Uid,
+														Gid: s.RunAs.Gid,
+													}
 												}
 
 												return nil

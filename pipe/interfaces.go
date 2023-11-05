@@ -18,8 +18,9 @@ type (
 	}
 
 	StepSyscallCredentials struct {
-		Uid uint32 `json:"uid,omitempty" validate:"uint32"`
-		Gid uint32 `json:"gid,omitempty" validate:"uint32"`
+		Enable bool   `json:"enable,omitempty" validate:"bool"`
+		Uid    uint32 `json:"uid,omitempty"    validate:"uint32"`
+		Gid    uint32 `json:"gid,omitempty"    validate:"uint32"`
 	}
 
 	Step struct {
