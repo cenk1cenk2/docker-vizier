@@ -36,6 +36,7 @@ type (
 	}
 
 	VizierStepCommand struct {
+		Name        string                    `json:"name,omitempty"`
 		Cwd         string                    `json:"cwd,omitempty"          validate:"omitempty,dir"`
 		Command     string                    `json:"command"                validate:"required"`
 		Retry       VizierStepCommandRetry    `json:"retry,omitempty"        validate:"omitempty"`

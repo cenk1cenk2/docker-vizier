@@ -29,7 +29,13 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 						}).
 						Set(func(t *Task[Pipe]) error {
 							for _, command := range step.Commands {
-								handleStepCommand(t, command)
+								st := handleStepCommand(t, command)
+
+								if step.Parallel {
+									st.AddSelfToTheParentAsParallel()
+								} else {
+									st.AddSelfToTheParentAsSequence()
+								}
 							}
 
 							return nil
@@ -57,19 +63,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 							return job
 						}).
 						ShouldRunAfter(func(t *Task[Pipe]) error {
-							if step.Parallel {
-								t.Log.Debugf(
-									"Task will run commands in parallel.",
-								)
-
-								return t.RunCommandJobAsJobParallel()
-							}
-
-							t.Log.Debugf(
-								"Task will run commands in sequence.",
-							)
-
-							return t.RunCommandJobAsJobSequence()
+							return t.RunSubtasks()
 						}).
 						AddSelfToTheParentAsSequence()
 				}(step)
@@ -82,45 +76,53 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 		})
 }
 
-func handleStepCommand(t *Task[Pipe], command VizierStepCommand) {
-	run := strings.Split(command.Command, " ")
+func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
+	return t.CreateSubtask(command.Name).
+		Set(func(t *Task[Pipe]) error {
+			run := strings.Split(command.Command, " ")
 
-	t.CreateCommand(run[0], run[1:]...).
-		Set(func(c *Command[Pipe]) error {
-			if command.IgnoreError {
-				c.SetIgnoreError()
-			}
+			t.CreateCommand(run[0], run[1:]...).
+				Set(func(c *Command[Pipe]) error {
+					if command.IgnoreError {
+						c.SetIgnoreError()
+					}
 
-			if command.RunAs != nil {
-				c.Command.SysProcAttr = &syscall.SysProcAttr{
-					Credential: &syscall.Credential{},
-				}
+					if command.RunAs != nil {
+						c.Command.SysProcAttr = &syscall.SysProcAttr{
+							Credential: &syscall.Credential{},
+						}
 
-				if command.RunAs.User != nil {
-					c.Log.Debugf(
-						"Will run the command with uid: %d",
-						*command.RunAs.User,
-					)
-					c.Command.SysProcAttr.Credential.Uid = *command.RunAs.User
-				}
+						if command.RunAs.User != nil {
+							c.Log.Debugf(
+								"Will run the command with uid: %d",
+								*command.RunAs.User,
+							)
+							c.Command.SysProcAttr.Credential.Uid = *command.RunAs.User
+						}
 
-				if command.RunAs.Group != nil {
-					c.Log.Debugf(
-						"Will run the command with gid: %d",
-						*command.RunAs.Group,
-					)
-					c.Command.SysProcAttr.Credential.Gid = *command.RunAs.Group
-				}
-			}
+						if command.RunAs.Group != nil {
+							c.Log.Debugf(
+								"Will run the command with gid: %d",
+								*command.RunAs.Group,
+							)
+							c.Command.SysProcAttr.Credential.Gid = *command.RunAs.Group
+						}
+					}
+
+					return nil
+				}).
+				AppendEnvironment(command.Environment).
+				SetDir(command.Cwd).
+				SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
+				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
+				EnableTerminator().
+				AddSelfToTheTask()
 
 			return nil
 		}).
-		AppendEnvironment(command.Environment).
-		SetDir(command.Cwd).
-		SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
-		SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
-		EnableTerminator().
-		AddSelfToTheTask()
+		ShouldRunAfter(func(t *Task[Pipe]) error {
+			return t.RunCommandJobAsJobSequence()
+		})
 }
 
 func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) error {
