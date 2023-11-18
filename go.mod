@@ -4,7 +4,6 @@ go 1.21.4
 
 require (
 	github.com/urfave/cli/v2 v2.25.7
-	gitlab.kilic.dev/libraries/go-utils/v2 v2.1.1
 	gitlab.kilic.dev/libraries/plumber/v4 v4.35.1
 )
 
@@ -23,6 +22,7 @@ require (
 	github.com/workanator/go-floc/v3 v3.0.1 // indirect
 	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
 	gitlab.kilic.dev/libraries/go-broadcaster v1.1.1 // indirect
+	gitlab.kilic.dev/libraries/go-utils/v2 v2.1.1 // indirect
 	golang.org/x/crypto v0.15.0 // indirect
 	golang.org/x/exp v0.0.0-20231110203233-9a3e6036ecaa // indirect
 	golang.org/x/net v0.18.0 // indirect
