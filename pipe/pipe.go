@@ -11,7 +11,7 @@ type (
 
 	Pipe struct {
 		Config
-		Steps [][]Step
+		Steps []VizierStep `validate:"dive"`
 	}
 )
 

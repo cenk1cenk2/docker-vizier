@@ -53,9 +53,5 @@ func ProcessFlags(tl *TaskList[Pipe]) error {
 		}
 	}
 
-	if len(tl.Pipe.Steps) == 0 {
-		return fmt.Errorf("No steps has been defined.")
-	}
-
 	return nil
 }

@@ -1,6 +1,9 @@
 package pipe
 
 import (
+	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 
@@ -11,77 +14,163 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 	return tl.CreateTask().
 		Set(func(t *Task[Pipe]) error {
 			for _, step := range t.Pipe.Steps {
-				// every slice element runs in sequence
-				st := t.CreateSubtask().
-					ShouldRunAfter(func(t *Task[Pipe]) error {
-						return t.RunSubtasks()
-					}).
-					EnableTerminator().
-					AddSelfToTheParentAsSequence()
+				func(step VizierStep) {
+					t.CreateSubtask(step.Name).
+						ShouldRunBefore(func(t *Task[Pipe]) error {
+							for _, permission := range step.Permissions {
+								err := handleStepPermission(t, permission)
 
-				// multiple elements in a step run as parallel
-				for _, s := range step {
-					func(s Step) {
-						st.CreateSubtask(s.Name).
-							ShouldRunBefore(func(t *Task[Pipe]) error {
-								if s.Delay.Duration > 0 {
-									t.Log.Warnf(
-										"Task was delayed: %s",
-										s.Delay.String(),
-									)
+								if err != nil {
+									return err
 								}
+							}
 
-								return nil
-							}).
-							Set(func(t *Task[Pipe]) error {
-								for _, command := range s.Commands {
-									func(command string) {
-										c := strings.Split(command, " ")
+							return nil
+						}).
+						Set(func(t *Task[Pipe]) error {
+							for _, command := range step.Commands {
+								handleStepCommand(t, command)
+							}
 
-										t.CreateCommand(c[0], c[1:]...).
-											Set(func(c *Command[Pipe]) error {
-												if s.IgnoreError {
-													c.SetIgnoreError()
-												}
+							return nil
+						}).
+						SetJobWrapper(func(job Job) Job {
+							if step.Delay.Duration > 0 {
+								t.Log.Debugf(
+									"Task is delayed: %s -> %s",
+									step.Name,
+									step.Delay.String(),
+								)
 
-												c.Command.SysProcAttr = &syscall.SysProcAttr{}
+								job = TL.JobDelay(job, step.Delay.Duration)
+							}
 
-												if s.RunAs.Enable {
-													c.Command.SysProcAttr.Credential = &syscall.Credential{
-														Uid: s.RunAs.Uid,
-														Gid: s.RunAs.Gid,
-													}
-												}
+							if step.Background {
+								t.Log.Debugf(
+									"Task will run in the background: %s",
+									step.Name,
+								)
 
-												return nil
-											}).
-											AppendEnvironment(s.Environment).
-											SetDir(s.Cwd).
-											SetRetries(s.Retry.Retries, s.Retry.Always, s.Retry.Delay.Duration).
-											SetLogLevel(s.Log.Stdout, s.Log.Stderr, s.Log.Lifetime).
-											EnableTerminator().
-											AddSelfToTheTask()
-									}(command)
-								}
+								job = TL.JobBackground(job)
+							}
 
-								return nil
-							}).
-							SetJobWrapper(func(job Job) Job {
-								return TL.JobDelay(job, s.Delay.Duration)
-							}).
-							ShouldRunAfter(func(t *Task[Pipe]) error {
-								return t.RunCommandJobAsJobSequence()
-							}).
-							EnableTerminator().
-							AddSelfToTheParentAsParallel()
-					}(s)
+							return job
+						}).
+						ShouldRunAfter(func(t *Task[Pipe]) error {
+							if step.Parallel {
+								t.Log.Debugf(
+									"Task will run commands in parallel.",
+								)
+
+								return t.RunCommandJobAsJobParallel()
+							}
+
+							t.Log.Debugf(
+								"Task will run commands in sequence.",
+							)
+
+							return t.RunCommandJobAsJobSequence()
+						}).
+						AddSelfToTheParentAsSequence()
+				}(step)
+			}
+
+			return nil
+		}).
+		ShouldRunAfter(func(t *Task[Pipe]) error {
+			return t.RunSubtasks()
+		})
+}
+
+func handleStepCommand(t *Task[Pipe], command VizierStepCommand) {
+	run := strings.Split(command.Command, " ")
+
+	t.CreateCommand(run[0], run[1:]...).
+		Set(func(c *Command[Pipe]) error {
+			if command.IgnoreError {
+				c.SetIgnoreError()
+			}
+
+			if command.RunAs != nil {
+				c.Command.SysProcAttr = &syscall.SysProcAttr{
+					Credential: &syscall.Credential{},
+				}
+
+				if command.RunAs.User != nil {
+					c.Log.Debugf(
+						"Will run the command with uid: %d",
+						*command.RunAs.User,
+					)
+					c.Command.SysProcAttr.Credential.Uid = *command.RunAs.User
+				}
+
+				if command.RunAs.Group != nil {
+					c.Log.Debugf(
+						"Will run the command with gid: %d",
+						*command.RunAs.Group,
+					)
+					c.Command.SysProcAttr.Credential.Gid = *command.RunAs.Group
 				}
 			}
 
 			return nil
 		}).
+		AppendEnvironment(command.Environment).
+		SetDir(command.Cwd).
+		SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
+		SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
 		EnableTerminator().
-		ShouldRunAfter(func(t *Task[Pipe]) error {
-			return t.RunSubtasks()
-		})
+		AddSelfToTheTask()
+}
+
+func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) error {
+	if !permission.Recursive {
+		info, err := os.Lstat(*permission.Path)
+
+		if err != nil {
+			return err
+		}
+
+		return handleStepPermissionForPath(t, permission, *permission.Path, info)
+	}
+
+	return filepath.Walk(*permission.Path, func(path string, info fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		return handleStepPermissionForPath(t, permission, path, info)
+	})
+}
+
+func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
+	if permission.Chown.User != nil && permission.Chown.Group != nil {
+		err := os.Chown(path, int(*permission.Chown.User), int(*permission.Chown.Group))
+
+		if err != nil {
+			return err
+		}
+
+		t.Log.Tracef("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
+	}
+
+	if info.IsDir() && permission.Chmod.Dir != nil {
+		err := os.Chmod(path, *permission.Chmod.Dir)
+
+		if err != nil {
+			return err
+		}
+
+		t.Log.Tracef("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
+	} else if !info.IsDir() && permission.Chmod.File != nil {
+		err := os.Chmod(path, *permission.Chmod.File)
+
+		if err != nil {
+			return err
+		}
+
+		t.Log.Tracef("Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
+	}
+
+	return nil
 }
