@@ -1,6 +1,7 @@
 package pipe
 
 import (
+	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -17,20 +18,22 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 				func(step VizierStep) {
 					t.CreateSubtask(step.Name).
 						ShouldRunBefore(func(t *Task[Pipe]) error {
-							for _, permission := range step.Permissions {
-								err := handleStepPermission(t, permission)
+							st := t.CreateSubtask("permissions").
+								ShouldRunAfter(func(t *Task[Pipe]) error {
+									return t.RunSubtasks()
+								})
 
-								if err != nil {
-									return err
-								}
+							for _, permission := range step.Permissions {
+								handleStepPermission(st, permission).AddSelfToTheParentAsParallel()
 							}
 
+							st = t.CreateSubtask("templates").
+								ShouldRunAfter(func(t *Task[Pipe]) error {
+									return t.RunSubtasks()
+								}).
+								AddSelfToTheParentAsSequence()
 							for _, template := range step.Templates {
-								err := handleTemplate(t, template)
-
-								if err != nil {
-									return err
-								}
+								handleTemplate(st, template).AddSelfToTheParentAsParallel()
 							}
 
 							return nil
@@ -133,29 +136,59 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 		})
 }
 
-func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) error {
-	t.Log.Infof(
-		"Applying permissions to path: %s",
-		*permission.Path,
-	)
+func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[Pipe] {
+	return t.CreateSubtask(*permission.Path).
+		Set(func(t *Task[Pipe]) error {
+			if !permission.Recursive {
+				info, err := os.Lstat(*permission.Path)
 
-	if !permission.Recursive {
-		info, err := os.Lstat(*permission.Path)
+				if err != nil {
+					return err
+				}
 
-		if err != nil {
-			return err
-		}
+				return handleStepPermissionForPath(t, permission, *permission.Path, info)
+			}
 
-		return handleStepPermissionForPath(t, permission, *permission.Path, info)
-	}
+			return filepath.Walk(*permission.Path, func(path string, info fs.FileInfo, err error) error {
+				if err != nil {
+					return err
+				}
 
-	return filepath.Walk(*permission.Path, func(path string, info fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
+				return handleStepPermissionForPath(t, permission, path, info)
+			})
+		})
+}
 
-		return handleStepPermissionForPath(t, permission, path, info)
-	})
+func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
+	return t.CreateSubtask(fmt.Sprintf("%s -> %s", template.Input, template.Output)).
+		Set(func(t *Task[Pipe]) error {
+			tpl, err := os.ReadFile(template.Input)
+
+			if err != nil {
+				return err
+			}
+
+			render, err := InlineTemplate(string(tpl), template.Inject)
+
+			if err != nil {
+				return err
+			}
+
+			t.Log.Infof("Created file from template.")
+			t.Log.Debugf("Injected context: %+v", template.Inject)
+
+			if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
+				return err
+			}
+
+			return handleStepPermission(t, VizierStepPermission{
+				Path:      &template.Output,
+				Chown:     template.Chown,
+				Chmod:     template.Chmod,
+				Recursive: false,
+			}).
+				Run()
+		})
 }
 
 func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
@@ -188,32 +221,4 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 	}
 
 	return nil
-}
-
-func handleTemplate(t *Task[Pipe], template VizierStepTemplate) error {
-	tpl, err := os.ReadFile(template.Input)
-
-	if err != nil {
-		return err
-	}
-
-	render, err := InlineTemplate(string(tpl), template.Inject)
-
-	if err != nil {
-		return err
-	}
-
-	t.Log.Infof("Created file from template: %s -> %s", template.Input, template.Output)
-	t.Log.Debugf("%s -> %s with and injected context %+v", template.Input, template.Output, template.Inject)
-
-	if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
-		return err
-	}
-
-	return handleStepPermission(t, VizierStepPermission{
-		Path:      &template.Output,
-		Chown:     template.Chown,
-		Chmod:     template.Chmod,
-		Recursive: false,
-	})
 }
