@@ -53,10 +53,18 @@ type (
 		Recursive bool             `json:"recursive,omitempty"`
 	}
 
+	VizierStepTemplate struct {
+		Input  string      `json:"input,omitempty"  validate:"required,file"`
+		Output string      `json:"output,omitempty" validate:"required"`
+		Inject interface{} `json:"inject,omitempty"`
+		Chmod  VizierChmod `json:"chmod,omitempty"                           default:"0600"`
+	}
+
 	VizierStep struct {
 		Name        string                 `json:"name,omitempty"`
 		Commands    []VizierStepCommand    `json:"commands,omitempty"    validate:"omitempty,dive"`
 		Permissions []VizierStepPermission `json:"permissions,omitempty" validate:"omitempty,dive"`
+		Templates   []VizierStepTemplate   `json:"templates,omitempty"   validate:"omitempty,dive"`
 		Delay       JsonDuration           `json:"delay,omitempty"`
 		Background  bool                   `json:"background,omitempty"`
 		Parallel    bool                   `json:"parallel,omitempty"`

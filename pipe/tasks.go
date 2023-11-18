@@ -25,6 +25,14 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 								}
 							}
 
+							for _, template := range step.Templates {
+								err := handleTemplate(t, template)
+
+								if err != nil {
+									return err
+								}
+							}
+
 							return nil
 						}).
 						Set(func(t *Task[Pipe]) error {
@@ -126,6 +134,11 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 }
 
 func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) error {
+	t.Log.Infof(
+		"Applying permissions to path: %s",
+		*permission.Path,
+	)
+
 	if !permission.Recursive {
 		info, err := os.Lstat(*permission.Path)
 
@@ -153,7 +166,7 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Tracef("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
+		t.Log.Debugf("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
 	}
 
 	if info.IsDir() && permission.Chmod.Dir != nil {
@@ -163,7 +176,7 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Tracef("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
+		t.Log.Debugf("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
 	} else if !info.IsDir() && permission.Chmod.File != nil {
 		err := os.Chmod(path, *permission.Chmod.File)
 
@@ -171,8 +184,35 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Tracef("Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
+		t.Log.Debugf("Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
 	}
 
 	return nil
+}
+
+func handleTemplate(t *Task[Pipe], template VizierStepTemplate) error {
+	tpl, err := os.ReadFile(template.Input)
+
+	if err != nil {
+		return err
+	}
+
+	ctx := struct {
+		Inject interface{}
+		Env    map[string]string
+	}{
+		Inject: template.Inject,
+		Env:    ParseEnvironmentVariablesToMap(),
+	}
+
+	render, err := InlineTemplate(string(tpl), ctx)
+
+	if err != nil {
+		return err
+	}
+
+	t.Log.Infof("Created file from template: %s -> %s", template.Input, template.Output)
+	t.Log.Debugf("%s -> %s with mode %d and injected context %+v", template.Input, template.Output, *template.Chmod.File, ctx.Inject)
+
+	return os.WriteFile(template.Output, []byte(render), *template.Chmod.File)
 }

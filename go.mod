@@ -4,7 +4,7 @@ go 1.21.4
 
 require (
 	github.com/urfave/cli/v2 v2.25.7
-	gitlab.kilic.dev/libraries/plumber/v4 v4.35.1
+	gitlab.kilic.dev/libraries/plumber/v4 v4.36.0
 )
 
 require (
