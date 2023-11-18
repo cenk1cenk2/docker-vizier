@@ -197,22 +197,23 @@ func handleTemplate(t *Task[Pipe], template VizierStepTemplate) error {
 		return err
 	}
 
-	ctx := struct {
-		Inject interface{}
-		Env    map[string]string
-	}{
-		Inject: template.Inject,
-		Env:    ParseEnvironmentVariablesToMap(),
-	}
-
-	render, err := InlineTemplate(string(tpl), ctx)
+	render, err := InlineTemplate(string(tpl), template.Inject)
 
 	if err != nil {
 		return err
 	}
 
 	t.Log.Infof("Created file from template: %s -> %s", template.Input, template.Output)
-	t.Log.Debugf("%s -> %s with mode %d and injected context %+v", template.Input, template.Output, *template.Chmod.File, ctx.Inject)
+	t.Log.Debugf("%s -> %s with and injected context %+v", template.Input, template.Output, template.Inject)
 
-	return os.WriteFile(template.Output, []byte(render), *template.Chmod.File)
+	if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
+		return err
+	}
+
+	return handleStepPermission(t, VizierStepPermission{
+		Path:      &template.Output,
+		Chown:     template.Chown,
+		Chmod:     template.Chmod,
+		Recursive: false,
+	})
 }

@@ -37,8 +37,8 @@ func (field *JsonDuration) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (field *VizierPermission) UnmarshalJSON(b []byte) error {
-	type A VizierPermission
+func (field *VizierChown) UnmarshalJSON(b []byte) error {
+	type A VizierChown
 	t := &struct {
 		User  *string `json:"user,omitempty"`
 		Group *string `json:"group,omitempty"`

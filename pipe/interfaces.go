@@ -7,7 +7,7 @@ import (
 )
 
 type (
-	VizierPermission struct {
+	VizierChown struct {
 		User  *uint32 `json:"user,omitempty"  validate:"required"`
 		Group *uint32 `json:"group,omitempty"`
 	}
@@ -32,7 +32,7 @@ type (
 	}
 
 	VizierStepCommandRunAs struct {
-		VizierPermission
+		VizierChown
 	}
 
 	VizierStepCommand struct {
@@ -47,17 +47,18 @@ type (
 	}
 
 	VizierStepPermission struct {
-		Path      *string          `json:"path,omitempty"      validate:"required"`
-		Chown     VizierPermission `json:"chown,omitempty"     validate:"omitempty"`
-		Chmod     VizierChmod      `json:"chmod,omitempty"     validate:"omitempty"`
-		Recursive bool             `json:"recursive,omitempty"`
+		Path      *string     `json:"path,omitempty"      validate:"required"`
+		Chown     VizierChown `json:"chown,omitempty"     validate:"omitempty"`
+		Chmod     VizierChmod `json:"chmod,omitempty"     validate:"omitempty"`
+		Recursive bool        `json:"recursive,omitempty"`
 	}
 
 	VizierStepTemplate struct {
 		Input  string      `json:"input,omitempty"  validate:"required,file"`
 		Output string      `json:"output,omitempty" validate:"required"`
 		Inject interface{} `json:"inject,omitempty"`
-		Chmod  VizierChmod `json:"chmod,omitempty"                           default:"0600"`
+		Chmod  VizierChmod `json:"chmod,omitempty"`
+		Chown  VizierChown `json:"chown,omitempty"  validate:"omitempty"`
 	}
 
 	VizierStep struct {
