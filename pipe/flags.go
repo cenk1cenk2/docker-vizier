@@ -27,8 +27,46 @@ var Flags = []cli.Flag{
 	},
 
 	&cli.StringFlag{
-		Name:     "steps",
-		Usage:    "Steps to run for the application, will be ignored when configuration file is read. json([]struct{})",
+		Name: "steps",
+		Usage: `Steps to run for the application, will be ignored when configuration file is read. json([]struct {
+  name?: string
+  commands?: []struct {
+    cwd?: string
+    command: string
+    retry?: struct {
+      retries?: number
+      always?: boolean
+      delay?: string
+    }
+    ignore_error?: boolean
+    log?: struct {
+      stdout?: VizierLogLevels
+      stderr?: VizierLogLevels
+      lifetime?: VizierLogLevels
+    }
+    environment?: map[string]string
+    run_as?: struct {
+      user?: string
+      group?: string
+    }
+  }
+  permissions?: []struct {
+    path: string
+    chown?: struct {
+      user?: string
+      group?: string
+    }
+    chmod?: struct {
+      file?: string
+      dir?: string
+    }
+    recursive?: boolean
+  }
+  delay?: string
+  background?: boolean
+  parallel?: boolean
+})
+`,
 		Required: false,
 		EnvVars:  []string{"VIZIER_STEPS"},
 		Value:    "",

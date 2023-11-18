@@ -20,15 +20,15 @@ type (
 
 type (
 	VizierStepCommandRetry struct {
-		Retries int          `json:"retries,omitempty" validate:"gt=0"`
+		Retries int          `json:"retries,omitempty" validate:"gte=0"`
 		Always  bool         `json:"always,omitempty"`
 		Delay   JsonDuration `json:"delay,omitempty"`
 	}
 
 	VizierStepCommandLogLevel struct {
-		Stdout   LogLevel `json:"stdout,omitempty"   validate:"oneof=fatal error warn info debug trace"`
-		Stderr   LogLevel `json:"stderr,omitempty"   validate:"oneof=fatal error warn info debug trace"`
-		Lifetime LogLevel `json:"lifetime,omitempty" validate:"oneof=fatal error warn info debug trace"`
+		Stdout   LogLevel `json:"stdout,omitempty"`
+		Stderr   LogLevel `json:"stderr,omitempty"`
+		Lifetime LogLevel `json:"lifetime,omitempty"`
 	}
 
 	VizierStepCommandRunAs struct {
