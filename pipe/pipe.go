@@ -11,7 +11,7 @@ type (
 
 	Pipe struct {
 		Config
-		Steps VizierConfig `validate:"required,dive"`
+		Steps VizierConfig `validate:"required"`
 	}
 )
 
