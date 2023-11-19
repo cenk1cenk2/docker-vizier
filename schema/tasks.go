@@ -15,13 +15,22 @@ func Generate(tl *TaskList[Pipe]) *Task[Pipe] {
 			schema := jsonschema.Reflect(&pipe.VizierConfig{})
 
 			for k, v := range schema.Definitions {
-				if k == "JsonDuration" {
+				switch k {
+				case "JsonDuration":
 					v.Type = "string"
 					v.Required = nil
 					v.Properties = nil
 					v.AdditionalProperties = nil
 				}
 			}
+
+			schema.AllOf = []*jsonschema.Schema{
+				{
+					Ref: "#/$defs/VizierConfig",
+				},
+			}
+
+			schema.Ref = ""
 
 			json, err := schema.MarshalJSON()
 
