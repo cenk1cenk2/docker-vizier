@@ -99,11 +99,11 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 			t.CreateCommand(run[0], run[1:]...).
 				Set(func(c *Command[Pipe]) error {
-					if command.IgnoreError {
+					if command.Health.IgnoreError {
 						c.SetIgnoreError()
 					}
 
-					if command.EnsureIsAlive {
+					if command.Health.EnsureIsAlive {
 						c.EnsureIsAlive()
 					}
 

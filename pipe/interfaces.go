@@ -35,16 +35,20 @@ type (
 		VizierChown
 	}
 
+	VizierStepCommandHealth struct {
+		EnsureIsAlive bool `json:"ensure_is_alive,omitempty" validate:"omitempty"`
+		IgnoreError   bool `json:"ignore_error,omitempty"`
+	}
+
 	VizierStepCommand struct {
-		Name          string                    `json:"name,omitempty"`
-		Cwd           string                    `json:"cwd,omitempty"             validate:"omitempty,dir"`
-		Command       string                    `json:"command"                   validate:"required"`
-		Retry         VizierStepCommandRetry    `json:"retry,omitempty"           validate:"omitempty"`
-		IgnoreError   bool                      `json:"ignore_error,omitempty"`
-		Log           VizierStepCommandLogLevel `json:"log,omitempty"             validate:"omitempty"`
-		Environment   map[string]string         `json:"environment,omitempty"`
-		RunAs         *VizierStepCommandRunAs   `json:"run_as,omitempty"          validate:"omitempty"`
-		EnsureIsAlive bool                      `json:"ensure_is_alive,omitempty" validate:"omitempty"`
+		Name        string                    `json:"name,omitempty"`
+		Cwd         string                    `json:"cwd,omitempty"         validate:"omitempty,dir"`
+		Command     string                    `json:"command"               validate:"required"`
+		Retry       VizierStepCommandRetry    `json:"retry,omitempty"       validate:"omitempty"`
+		Log         VizierStepCommandLogLevel `json:"log,omitempty"         validate:"omitempty"`
+		Environment map[string]string         `json:"environment,omitempty"`
+		RunAs       *VizierStepCommandRunAs   `json:"run_as,omitempty"      validate:"omitempty"`
+		Health      *VizierStepCommandHealth  `json:"health,omitempty"      validate:"omitempty"`
 	}
 
 	VizierStepPermission struct {
