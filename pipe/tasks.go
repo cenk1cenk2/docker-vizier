@@ -26,12 +26,12 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, permission := range step.Permissions {
-									subtask := handleStepPermission(st, permission)
+									handled := handleStepPermission(st, permission)
 
 									if permission.Parallel {
-										subtask.AddSelfToTheParentAsParallel()
+										handled.AddSelfToTheParentAsParallel()
 									} else {
-										subtask.AddSelfToTheParentAsSequence()
+										handled.AddSelfToTheParentAsSequence()
 									}
 								}
 							}
@@ -44,24 +44,30 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, template := range step.Templates {
-									subtask := handleTemplate(st, template).AddSelfToTheParentAsParallel()
+									handled := handleTemplate(st, template).AddSelfToTheParentAsParallel()
 
 									if template.Parallel {
-										subtask.AddSelfToTheParentAsParallel()
+										handled.AddSelfToTheParentAsParallel()
 									} else {
-										subtask.AddSelfToTheParentAsSequence()
+										handled.AddSelfToTheParentAsSequence()
 									}
 								}
 							}
 
 							if len(step.Commands) > 0 {
+								st := t.CreateSubtask().
+									ShouldRunAfter(func(t *Task[Pipe]) error {
+										return t.RunSubtasks()
+									}).
+									AddSelfToTheParentAsSequence()
+
 								for _, command := range step.Commands {
-									st := handleStepCommand(t, command)
+									handled := handleStepCommand(st, command)
 
 									if command.Parallel {
-										st.AddSelfToTheParentAsParallel()
+										handled.AddSelfToTheParentAsParallel()
 									} else {
-										st.AddSelfToTheParentAsSequence()
+										handled.AddSelfToTheParentAsSequence()
 									}
 								}
 							}
@@ -176,7 +182,7 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 					return err
 				}
 
-				return handleStepPermissionForPath(t, permission, *permission.Path, info)
+				return applyStepPermissionForPath(t, permission, *permission.Path, info)
 			}
 
 			return filepath.Walk(*permission.Path, func(path string, info fs.FileInfo, err error) error {
@@ -184,7 +190,7 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 					return err
 				}
 
-				return handleStepPermissionForPath(t, permission, path, info)
+				return applyStepPermissionForPath(t, permission, path, info)
 			})
 		})
 }
@@ -225,7 +231,7 @@ func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 		})
 }
 
-func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
+func applyStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
 	if permission.Chown.User != nil && permission.Chown.Group != nil {
 		err := os.Chown(path, int(*permission.Chown.User), int(*permission.Chown.Group))
 
