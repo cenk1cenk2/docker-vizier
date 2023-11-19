@@ -26,7 +26,13 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, permission := range step.Permissions {
-									handleStepPermission(st, permission).AddSelfToTheParentAsParallel()
+									subtask := handleStepPermission(st, permission)
+
+									if step.Parallel {
+										subtask.AddSelfToTheParentAsParallel()
+									} else {
+										subtask.AddSelfToTheParentAsSequence()
+									}
 								}
 							}
 
@@ -38,7 +44,13 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, template := range step.Templates {
-									handleTemplate(st, template).AddSelfToTheParentAsParallel()
+									subtask := handleTemplate(st, template).AddSelfToTheParentAsParallel()
+
+									if step.Parallel {
+										subtask.AddSelfToTheParentAsParallel()
+									} else {
+										subtask.AddSelfToTheParentAsSequence()
+									}
 								}
 							}
 
