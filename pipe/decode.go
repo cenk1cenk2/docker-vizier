@@ -40,7 +40,27 @@ func (field *JsonDuration) UnmarshalJSON(b []byte) error {
 }
 
 func (field *JsonDuration) UnmarshalYAML(value *yaml.Node) error {
-	return field.UnmarshalJSON([]byte(value.Value))
+	var unmarshalled interface{}
+
+	err := value.Decode(&unmarshalled)
+
+	if err != nil {
+		return err
+	}
+
+	switch value := unmarshalled.(type) {
+	case float64:
+		field.Duration = time.Duration(value)
+	case string:
+		field.Duration, err = time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("Invalid duration: %#v", unmarshalled)
+	}
+
+	return nil
 }
 
 func (field *VizierChown) UnmarshalJSON(b []byte) error {
@@ -129,7 +149,7 @@ func (field *VizierChown) UnmarshalYAML(value *yaml.Node) error {
 		A: (*A)(field),
 	}
 
-	if err := yaml.Unmarshal([]byte(value.Value), &t); err != nil {
+	if err := value.Decode(&t); err != nil {
 		return err
 	}
 
@@ -244,7 +264,7 @@ func (field *VizierChmod) UnmarshalYAML(value *yaml.Node) error {
 		A: (*A)(field),
 	}
 
-	if err := yaml.Unmarshal([]byte(value.Value), &t); err != nil {
+	if err := value.Decode(&t); err != nil {
 		return err
 	}
 
