@@ -7,6 +7,8 @@ import (
 	"os/user"
 	"strconv"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 type JsonDuration struct {
@@ -35,6 +37,10 @@ func (field *JsonDuration) UnmarshalJSON(b []byte) error {
 	}
 
 	return nil
+}
+
+func (field *JsonDuration) UnmarshalYAML(value *yaml.Node) error {
+	return field.UnmarshalJSON([]byte(value.Value))
 }
 
 func (field *VizierChown) UnmarshalJSON(b []byte) error {
@@ -113,17 +119,132 @@ func (field *VizierChown) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func (field *VizierChown) UnmarshalYAML(value *yaml.Node) error {
+	type A VizierChown
+	t := &struct {
+		User  *string `yaml:"user"`
+		Group *string `yaml:"group"`
+		*A
+	}{
+		A: (*A)(field),
+	}
+
+	if err := yaml.Unmarshal([]byte(value.Value), &t); err != nil {
+		return err
+	}
+
+	if t.User != nil {
+		var u *user.User
+		var err error
+
+		if _, e := strconv.ParseUint(*t.User, 10, 32); e != nil {
+			u, err = user.Lookup(*t.User)
+		} else {
+			u, err = user.LookupId(*t.User)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		uid, err := strconv.ParseUint(u.Uid, 10, 32)
+
+		if err != nil {
+			return err
+		}
+
+		parsed := uint32(uid)
+		field.User = &parsed
+
+		if t.Group == nil {
+			gid, err := strconv.ParseUint(u.Gid, 10, 32)
+
+			if err != nil {
+				return err
+			}
+
+			parsed := uint32(gid)
+			field.Group = &parsed
+		}
+	}
+
+	if t.Group != nil {
+		var g *user.Group
+		var err error
+
+		if _, e := strconv.ParseUint(*t.Group, 10, 32); e != nil {
+			g, err = user.LookupGroup(*t.Group)
+		} else {
+			g, err = user.LookupGroupId(*t.Group)
+		}
+
+		if err != nil {
+			return err
+		}
+
+		gid, err := strconv.ParseUint(g.Gid, 10, 32)
+
+		if err != nil {
+			return err
+		}
+
+		parsed := uint32(gid)
+		field.Group = &parsed
+	}
+
+	return nil
+}
+
 func (field *VizierChmod) UnmarshalJSON(b []byte) error {
 	type A VizierChmod
 	t := &struct {
-		File *string `json:"file,omitempty"`
-		Dir  *string `json:"dir,omitempty"`
+		File *string `json:"file,omitempty" `
+		Dir  *string `json:"dir,omitempty" `
 		*A
 	}{
 		A: (*A)(field),
 	}
 
 	if err := json.Unmarshal(b, &t); err != nil {
+		return err
+	}
+
+	if t.File != nil {
+		perm, err := strconv.ParseUint(*t.File, 8, 32)
+
+		if err != nil {
+			return err
+		}
+
+		parsed := os.FileMode(perm)
+		field.File = &parsed
+	}
+
+	if t.Dir != nil {
+		perm, err := strconv.ParseUint(*t.Dir, 8, 32)
+
+		if err != nil {
+			return err
+		}
+
+		parsed := os.FileMode(perm)
+		field.Dir = &parsed
+	}
+
+	return nil
+}
+
+func (field *VizierChmod) UnmarshalYAML(value *yaml.Node) error {
+	type A VizierChmod
+	t := &struct {
+		File *string `yaml:"file"`
+		Dir  *string `yaml:"dir"`
+		*A
+	}{
+		A: (*A)(field),
+	}
+
+	if err := yaml.Unmarshal([]byte(value.Value), &t); err != nil {
 		return err
 	}
 

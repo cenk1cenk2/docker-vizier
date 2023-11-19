@@ -56,6 +56,7 @@
         "name": { "type": "string" },
         "cwd": { "type": "string" },
         "command": { "type": "string" },
+        "script": { "$ref": "#/$defs/VizierStepCommandScript" },
         "retry": { "$ref": "#/$defs/VizierStepCommandRetry" },
         "environment": {
           "additionalProperties": { "type": "string" },
@@ -68,7 +69,7 @@
       },
       "additionalProperties": false,
       "type": "object",
-      "required": ["command"]
+      "required": ["command", "script"]
     },
     "VizierStepCommandHealth": {
       "properties": {
@@ -117,6 +118,15 @@
       "additionalProperties": false,
       "type": "object",
       "required": ["user"]
+    },
+    "VizierStepCommandScript": {
+      "properties": {
+        "inline": { "type": "string" },
+        "file": { "type": "string" },
+        "ctx": true
+      },
+      "additionalProperties": false,
+      "type": "object"
     },
     "VizierStepLogLevel": {
       "properties": {

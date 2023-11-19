@@ -2,6 +2,7 @@ package pipe
 
 import (
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -14,7 +15,7 @@ import (
 func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 	return tl.CreateTask().
 		Set(func(t *Task[Pipe]) error {
-			for _, step := range t.Pipe.Steps.Steps {
+			for _, step := range t.Pipe.Config.Steps {
 				func(step VizierStep) {
 					task := t.CreateSubtask(step.Name).
 						Set(func(t *Task[Pipe]) error {
@@ -153,6 +154,46 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 								*command.RunAs.Group,
 							)
 							c.Command.SysProcAttr.Credential.Gid = *command.RunAs.Group
+						}
+					}
+
+					if command.Script != nil {
+						stdin, err := c.Command.StdinPipe()
+
+						if err != nil {
+							return err
+						}
+
+						if command.Script.File != nil {
+							file, err := os.ReadFile(*command.Script.File)
+
+							if err != nil {
+								return err
+							}
+
+							tpl, err := InlineTemplate(string(file), command.Script.Ctx)
+
+							if err != nil {
+								return err
+							}
+
+							_, err = io.WriteString(stdin, tpl)
+
+							if err != nil {
+								return err
+							}
+						} else if command.Script.Inline != nil {
+							tpl, err := InlineTemplate(*command.Script.Inline, command.Script.Ctx)
+
+							if err != nil {
+								return err
+							}
+
+							_, err = io.WriteString(stdin, tpl)
+
+							if err != nil {
+								return err
+							}
 						}
 					}
 

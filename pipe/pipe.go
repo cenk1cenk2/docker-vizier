@@ -5,13 +5,9 @@ import (
 )
 
 type (
-	Config struct {
-		File string
-	}
-
 	Pipe struct {
-		Config
-		Steps VizierConfig `validate:"required"`
+		File   string
+		Config VizierConfig `validate:"required"`
 	}
 )
 

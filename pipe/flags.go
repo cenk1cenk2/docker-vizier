@@ -4,9 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
+	"slices"
 
 	"github.com/urfave/cli/v2"
 	. "gitlab.kilic.dev/libraries/plumber/v4"
+	"gopkg.in/yaml.v3"
 )
 
 //revive:disable:line-length-limit
@@ -23,7 +26,7 @@ var Flags = []cli.Flag{
 		Required:    false,
 		Value:       "",
 		EnvVars:     []string{"VIZIER_CONFIG"},
-		Destination: &TL.Pipe.Config.File,
+		Destination: &TL.Pipe.File,
 	},
 
 	&cli.StringFlag{
@@ -44,11 +47,25 @@ func ProcessFlags(tl *TaskList[Pipe]) error {
 			return err
 		}
 
-		if err := json.Unmarshal(file, &tl.Pipe.Steps); err != nil {
-			return fmt.Errorf("Can not unmarshal steps from configuration file: %w", err)
+		ext := path.Ext(v)
+
+		if ext == ".json" {
+			err := json.Unmarshal(file, &tl.Pipe.Config)
+
+			if err != nil {
+				return fmt.Errorf("Can not unmarshal steps from configuration file: %w", err)
+			}
+		} else if slices.Contains([]string{".yaml", ".yml"}, ext) {
+			err := yaml.Unmarshal(file, &tl.Pipe.Config)
+
+			if err != nil {
+				return fmt.Errorf("Can not unmarshal steps from configuration file: %w", err)
+			}
+		} else {
+			return fmt.Errorf("Can not handle config file with extension: %s", ext)
 		}
 	} else if v := tl.CliContext.String("steps"); v != "" {
-		if err := json.Unmarshal([]byte(v), &tl.Pipe.Steps); err != nil {
+		if err := json.Unmarshal([]byte(v), &tl.Pipe.Config); err != nil {
 			return fmt.Errorf("Can not unmarshal steps: %w", err)
 		}
 	}
