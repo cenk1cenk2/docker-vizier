@@ -1,1 +1,139 @@
-{"$schema":"https://json-schema.org/draft/2020-12/schema","$id":"https://gitlab.kilic.dev/docker/vizier/pipe/vizier-config","$ref":"#/$defs/VizierConfig","$defs":{"JsonDuration":{"properties":{"Duration":{"type":"integer"}},"additionalProperties":false,"type":"object","required":["Duration"]},"VizierChmod":{"properties":{"file":{"oneOf":[{"type":"string"}]},"dir":{"oneOf":[{"type":"string"}]}},"additionalProperties":false,"type":"object"},"VizierChown":{"properties":{"user":{"oneOf":[{"type":"string"}]},"group":{"oneOf":[{"type":"string"}]}},"additionalProperties":false,"type":"object","required":["user"]},"VizierConfig":{"properties":{"steps":{"items":{"$ref":"#/$defs/VizierStep"},"type":"array"}},"additionalProperties":false,"type":"object","required":["steps"]},"VizierStep":{"properties":{"name":{"type":"string"},"commands":{"items":{"$ref":"#/$defs/VizierStepCommand"},"type":"array"},"permissions":{"items":{"$ref":"#/$defs/VizierStepPermission"},"type":"array"},"templates":{"items":{"$ref":"#/$defs/VizierStepTemplate"},"type":"array"},"delay":{"$ref":"#/$defs/JsonDuration"},"background":{"type":"boolean"},"parallel":{"type":"boolean"}},"additionalProperties":false,"type":"object"},"VizierStepCommand":{"properties":{"name":{"type":"string"},"cwd":{"type":"string"},"command":{"type":"string"},"retry":{"$ref":"#/$defs/VizierStepCommandRetry"},"log":{"$ref":"#/$defs/VizierStepCommandLogLevel"},"environment":{"additionalProperties":{"type":"string"},"type":"object"},"runAs":{"$ref":"#/$defs/VizierStepCommandRunAs"},"health":{"$ref":"#/$defs/VizierStepCommandHealth"}},"additionalProperties":false,"type":"object","required":["command"]},"VizierStepCommandHealth":{"properties":{"ensureIsAlive":{"type":"boolean"},"ignoreError":{"type":"boolean"}},"additionalProperties":false,"type":"object"},"VizierStepCommandLogLevel":{"properties":{"stdout":{"oneOf":[{"type":"string"}]},"stderr":{"oneOf":[{"type":"string"}]},"lifetime":{"oneOf":[{"type":"string"}]}},"additionalProperties":false,"type":"object"},"VizierStepCommandRetry":{"properties":{"retries":{"type":"integer"},"always":{"type":"boolean"},"delay":{"$ref":"#/$defs/JsonDuration","oneOf":[{"type":"string"}]}},"additionalProperties":false,"type":"object"},"VizierStepCommandRunAs":{"properties":{"user":{"oneOf":[{"type":"string"}]},"group":{"oneOf":[{"type":"string"}]}},"additionalProperties":false,"type":"object","required":["user"]},"VizierStepPermission":{"properties":{"path":{"type":"string"},"chown":{"$ref":"#/$defs/VizierChown"},"chmod":{"$ref":"#/$defs/VizierChmod"},"recursive":{"type":"boolean"}},"additionalProperties":false,"type":"object","required":["path"]},"VizierStepTemplate":{"properties":{"input":{"type":"string"},"output":{"type":"string"},"ctx":true,"chmod":{"$ref":"#/$defs/VizierChmod"},"chown":{"$ref":"#/$defs/VizierChown"}},"additionalProperties":false,"type":"object","required":["input","output"]}}}
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gitlab.kilic.dev/docker/vizier/pipe/vizier-config",
+  "$ref": "#/$defs/VizierConfig",
+  "$defs": {
+    "JsonDuration": {
+      "properties": { "Duration": { "type": "integer" } },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["Duration"]
+    },
+    "VizierChmod": {
+      "properties": {
+        "file": { "oneOf": [{ "type": "string" }] },
+        "dir": { "oneOf": [{ "type": "string" }] }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VizierChown": {
+      "properties": {
+        "user": { "oneOf": [{ "type": "string" }] },
+        "group": { "oneOf": [{ "type": "string" }] }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["user"]
+    },
+    "VizierConfig": {
+      "properties": {
+        "steps": { "items": { "$ref": "#/$defs/VizierStep" }, "type": "array" }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["steps"]
+    },
+    "VizierStep": {
+      "properties": {
+        "name": { "type": "string" },
+        "commands": {
+          "items": { "$ref": "#/$defs/VizierStepCommand" },
+          "type": "array"
+        },
+        "permissions": {
+          "items": { "$ref": "#/$defs/VizierStepPermission" },
+          "type": "array"
+        },
+        "templates": {
+          "items": { "$ref": "#/$defs/VizierStepTemplate" },
+          "type": "array"
+        },
+        "delay": { "$ref": "#/$defs/JsonDuration" },
+        "background": { "type": "boolean" },
+        "parallel": { "type": "boolean" }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VizierStepCommand": {
+      "properties": {
+        "name": { "type": "string" },
+        "cwd": { "type": "string" },
+        "command": { "type": "string" },
+        "retry": { "$ref": "#/$defs/VizierStepCommandRetry" },
+        "log": { "$ref": "#/$defs/VizierStepCommandLogLevel" },
+        "environment": {
+          "additionalProperties": { "type": "string" },
+          "type": "object"
+        },
+        "runAs": { "$ref": "#/$defs/VizierStepCommandRunAs" },
+        "health": { "$ref": "#/$defs/VizierStepCommandHealth" }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["command"]
+    },
+    "VizierStepCommandHealth": {
+      "properties": {
+        "ensureIsAlive": { "type": "boolean" },
+        "ignoreError": { "type": "boolean" }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VizierStepCommandLogLevel": {
+      "properties": {
+        "stdout": { "oneOf": [{ "type": "string" }] },
+        "stderr": { "oneOf": [{ "type": "string" }] },
+        "lifetime": { "oneOf": [{ "type": "string" }] }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VizierStepCommandRetry": {
+      "properties": {
+        "retries": { "type": "integer" },
+        "always": { "type": "boolean" },
+        "delay": {
+          "$ref": "#/$defs/JsonDuration",
+          "oneOf": [{ "type": "string" }]
+        }
+      },
+      "additionalProperties": false,
+      "type": "object"
+    },
+    "VizierStepCommandRunAs": {
+      "properties": {
+        "user": { "oneOf": [{ "type": "string" }] },
+        "group": { "oneOf": [{ "type": "string" }] }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["user"]
+    },
+    "VizierStepPermission": {
+      "properties": {
+        "path": { "type": "string" },
+        "chown": { "$ref": "#/$defs/VizierChown" },
+        "chmod": { "$ref": "#/$defs/VizierChmod" },
+        "recursive": { "type": "boolean" }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["path"]
+    },
+    "VizierStepTemplate": {
+      "properties": {
+        "input": { "type": "string" },
+        "output": { "type": "string" },
+        "ctx": true,
+        "chmod": { "$ref": "#/$defs/VizierChmod" },
+        "chown": { "$ref": "#/$defs/VizierChown" }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": ["input", "output"]
+    }
+  }
+}
