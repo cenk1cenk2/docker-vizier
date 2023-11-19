@@ -103,6 +103,10 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						c.SetIgnoreError()
 					}
 
+					if command.EnsureIsAlive {
+						c.EnsureIsAlive()
+					}
+
 					if command.RunAs != nil {
 						c.Command.SysProcAttr = &syscall.SysProcAttr{
 							Credential: &syscall.Credential{},
