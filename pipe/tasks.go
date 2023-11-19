@@ -44,7 +44,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, template := range step.Templates {
-									handled := handleTemplate(st, template).AddSelfToTheParentAsParallel()
+									handled := handleTemplate(st, template)
 
 									if template.Parallel {
 										handled.AddSelfToTheParentAsParallel()
