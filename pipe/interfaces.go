@@ -48,7 +48,7 @@ type (
 		Log         VizierStepCommandLogLevel `json:"log,omitempty"         validate:"omitempty"`
 		Environment map[string]string         `json:"environment,omitempty"`
 		RunAs       *VizierStepCommandRunAs   `json:"run_as,omitempty"      validate:"omitempty"`
-		Health      *VizierStepCommandHealth  `json:"health,omitempty"      validate:"omitempty"`
+		Health      VizierStepCommandHealth   `json:"health,omitempty"      validate:"omitempty"`
 	}
 
 	VizierStepPermission struct {

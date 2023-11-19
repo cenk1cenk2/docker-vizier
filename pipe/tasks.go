@@ -58,8 +58,8 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 						}).
 						SetJobWrapper(func(job Job) Job {
 							if step.Delay.Duration > 0 {
-								t.Log.Debugf(
-									"Task is delayed: %s -> %s",
+								t.Log.Warnf(
+									"Task will run with delay: %s -> %s",
 									step.Name,
 									step.Delay.String(),
 								)
