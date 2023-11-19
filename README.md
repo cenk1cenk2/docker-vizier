@@ -18,21 +18,37 @@ some description
 
 <!-- clidocs -->
 
-| Flag / Environment |  Description   |  Type    | Required | Default |
-|---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$VIZIER_STEPS` | Steps to run for the application, will be ignored when configuration file is read. json([]struct {<br />  name?: string<br />  commands?: []struct {<br />    cwd?: string<br />    command: string<br />    retry?: struct {<br />      retries?: number<br />      always?: boolean<br />      delay?: string<br />    }<br />    ignore_error?: boolean<br />    log?: struct {<br />      stdout?: VizierLogLevels<br />      stderr?: VizierLogLevels<br />      lifetime?: VizierLogLevels<br />    }<br />    environment?: map[string]string<br />    run_as?: struct {<br />      user?: string<br />      group?: string<br />    }<br />  }<br />  permissions?: []struct {<br />    path: string<br />    chown?: struct {<br />      user?: string<br />      group?: string<br />    }<br />    chmod?: struct {<br />      file?: string<br />      dir?: string<br />    }<br />    recursive?: boolean<br />  }<br />  delay?: string<br />  background?: boolean<br />  parallel?: boolean<br />}) | `String` | `false` |  |
+## Global Flags
+
+| Flag / Environment | Description                                                                        | Type                                                                                             | Required | Default |
+| ------------------ | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | -------- | ------- |
+| `$VIZIER_STEPS`    | Steps to run for the application, will be ignored when configuration file is read. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false`  |         |
 
 ### CLI
 
-| Flag / Environment |  Description   |  Type    | Required | Default |
-|---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$LOG_LEVEL` | Define the log level for the application. | `String`<br/>`enum("panic", "fatal", "warn", "info", "debug", "trace")` | `false` | info |
-| `$ENV_FILE` | Environment files to inject. | `StringSlice` | `false` |  |
+| Flag / Environment | Description                               | Type                                                                    | Required | Default |
+| ------------------ | ----------------------------------------- | ----------------------------------------------------------------------- | -------- | ------- |
+| `$LOG_LEVEL`       | Define the log level for the application. | `String`<br/>`enum("panic", "fatal", "warn", "info", "debug", "trace")` | `false`  | info    |
+| `$ENV_FILE`        | Environment files to inject.              | `StringSlice`                                                           | `false`  |         |
 
 ### Config
 
-| Flag / Environment |  Description   |  Type    | Required | Default |
-|---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$VIZIER_CONFIG` | Configuration file to read from. | `String` | `false` |  |
+| Flag / Environment | Description                      | Type                                                                                             | Required | Default |
+| ------------------ | -------------------------------- | ------------------------------------------------------------------------------------------------ | -------- | ------- |
+| `$VIZIER_CONFIG`   | Configuration file to read from. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false`  |         |
+
+## Commands
+
+### `generate`
+
+Generate json schema
+
+`vizier generate [GLOBAL FLAGS] [FLAGS]`
+
+#### Flags
+
+| Flag / Environment      | Description              | Type     | Required | Default     |
+| ----------------------- | ------------------------ | -------- | -------- | ----------- |
+| `$VIZIER_SCHEMA_OUTPUT` | Schema file to write to. | `String` | `false`  | schema.json |
 
 <!-- clidocsstop -->
