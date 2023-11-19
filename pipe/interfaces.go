@@ -22,13 +22,13 @@ type (
 	VizierStepCommandRetry struct {
 		Retries int          `json:"retries,omitempty" validate:"gte=0"`
 		Always  bool         `json:"always,omitempty"`
-		Delay   JsonDuration `json:"delay,omitempty"                    jsonschema:"oneof_type=string"`
+		Delay   JsonDuration `json:"delay,omitempty"                    jsonschema:"type=string"`
 	}
 
 	VizierStepCommandLogLevel struct {
-		Stdout   LogLevel `json:"stdout,omitempty"   jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
-		Stderr   LogLevel `json:"stderr,omitempty"   jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
-		Lifetime LogLevel `json:"lifetime,omitempty" jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
+		Stdout   LogLevel `json:"stdout,omitempty"   jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
+		Stderr   LogLevel `json:"stderr,omitempty"   jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
+		Lifetime LogLevel `json:"lifetime,omitempty" jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
 	}
 
 	VizierStepCommandRunAs struct {
@@ -71,7 +71,7 @@ type (
 		Commands    []VizierStepCommand    `json:"commands,omitempty"    validate:"omitempty,dive"`
 		Permissions []VizierStepPermission `json:"permissions,omitempty" validate:"omitempty,dive"`
 		Templates   []VizierStepTemplate   `json:"templates,omitempty"   validate:"omitempty,dive"`
-		Delay       JsonDuration           `json:"delay,omitempty"`
+		Delay       JsonDuration           `json:"delay,omitempty"                                 jsonschema:"type=string"`
 		Background  bool                   `json:"background,omitempty"`
 		Parallel    bool                   `json:"parallel,omitempty"`
 	}

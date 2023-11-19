@@ -3,12 +3,7 @@
   "$id": "https://gitlab.kilic.dev/docker/vizier/pipe/vizier-config",
   "$ref": "#/$defs/VizierConfig",
   "$defs": {
-    "JsonDuration": {
-      "properties": { "Duration": { "type": "integer" } },
-      "additionalProperties": false,
-      "type": "object",
-      "required": ["Duration"]
-    },
+    "JsonDuration": { "type": "string" },
     "VizierChmod": {
       "properties": {
         "file": { "oneOf": [{ "type": "string" }] },
@@ -49,7 +44,7 @@
           "items": { "$ref": "#/$defs/VizierStepTemplate" },
           "type": "array"
         },
-        "delay": { "$ref": "#/$defs/JsonDuration" },
+        "delay": { "$ref": "#/$defs/JsonDuration", "type": "string" },
         "background": { "type": "boolean" },
         "parallel": { "type": "boolean" }
       },
@@ -84,9 +79,18 @@
     },
     "VizierStepCommandLogLevel": {
       "properties": {
-        "stdout": { "oneOf": [{ "type": "string" }] },
-        "stderr": { "oneOf": [{ "type": "string" }] },
-        "lifetime": { "oneOf": [{ "type": "string" }] }
+        "stdout": {
+          "type": "string",
+          "enum": ["fatal", "error", "warn", "info", "debug", "trace"]
+        },
+        "stderr": {
+          "type": "string",
+          "enum": ["fatal", "error", "warn", "info", "debug", "trace"]
+        },
+        "lifetime": {
+          "type": "string",
+          "enum": ["fatal", "error", "warn", "info", "debug", "trace"]
+        }
       },
       "additionalProperties": false,
       "type": "object"
@@ -95,10 +99,7 @@
       "properties": {
         "retries": { "type": "integer" },
         "always": { "type": "boolean" },
-        "delay": {
-          "$ref": "#/$defs/JsonDuration",
-          "oneOf": [{ "type": "string" }]
-        }
+        "delay": { "$ref": "#/$defs/JsonDuration", "type": "string" }
       },
       "additionalProperties": false,
       "type": "object"

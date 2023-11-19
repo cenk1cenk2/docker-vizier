@@ -14,6 +14,15 @@ func Generate(tl *TaskList[Pipe]) *Task[Pipe] {
 		Set(func(t *Task[Pipe]) error {
 			schema := jsonschema.Reflect(&pipe.VizierConfig{})
 
+			for k, v := range schema.Definitions {
+				if k == "JsonDuration" {
+					v.Type = "string"
+					v.Required = nil
+					v.Properties = nil
+					v.AdditionalProperties = nil
+				}
+			}
+
 			json, err := schema.MarshalJSON()
 
 			if err != nil {
