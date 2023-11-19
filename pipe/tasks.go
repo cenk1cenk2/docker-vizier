@@ -237,39 +237,25 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 }
 
 func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
-	return t.CreateSubtask(fmt.Sprintf("%s -> %s", template.Input, template.Output)).
-		Set(func(t *Task[Pipe]) error {
-			tpl, err := os.ReadFile(template.Input)
+	if template.Input != nil {
+		return t.CreateSubtask(fmt.Sprintf("%s -> %s", *template.Input, template.Output)).
+			Set(func(t *Task[Pipe]) error {
+				tpl, err := os.ReadFile(*template.Input)
 
-			if err != nil {
-				return err
-			}
+				if err != nil {
+					return err
+				}
 
-			render, err := InlineTemplate(string(tpl), template.Ctx)
+				return applyStepTemplateForInline(t, template, string(tpl))
+			})
+	} else if template.Inline != nil {
+		return t.CreateSubtask(fmt.Sprintf("%s -> %s", "inline", template.Output)).
+			Set(func(t *Task[Pipe]) error {
+				return applyStepTemplateForInline(t, template, *template.Inline)
+			})
+	}
 
-			if err != nil {
-				return err
-			}
-
-			t.Log.Logf(template.Log.Generation, "Created file from template.")
-			t.Log.Logf(template.Log.Context, "Injected context: %+v", template.Ctx)
-
-			if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
-				return err
-			}
-
-			return handleStepPermission(t, VizierStepPermission{
-				Path:  &template.Output,
-				Chown: template.Chown,
-				Chmod: template.Chmod,
-				Log: VizierStepPermissionLogLevel{
-					Chown: template.Log.Chown,
-					Chmod: template.Log.Chmod,
-				},
-				Recursive: false,
-			}).
-				Run()
-		})
+	return nil
 }
 
 func applyStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
@@ -302,4 +288,31 @@ func applyStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, 
 	}
 
 	return nil
+}
+
+func applyStepTemplateForInline(t *Task[Pipe], template VizierStepTemplate, tpl string) error {
+	render, err := InlineTemplate(tpl, template.Ctx)
+
+	if err != nil {
+		return err
+	}
+
+	t.Log.Logf(template.Log.Generation, "Created file from template.")
+	t.Log.Logf(template.Log.Context, "Injected context: %+v", template.Ctx)
+
+	if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
+		return err
+	}
+
+	return handleStepPermission(t, VizierStepPermission{
+		Path:  &template.Output,
+		Chown: template.Chown,
+		Chmod: template.Chmod,
+		Log: VizierStepPermissionLogLevel{
+			Chown: template.Log.Chown,
+			Chmod: template.Log.Chmod,
+		},
+		Recursive: false,
+	}).
+		Run()
 }

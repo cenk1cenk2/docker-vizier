@@ -89,8 +89,9 @@ type (
 	}
 
 	VizierStepTemplate struct {
-		Input    string                     `json:"input,omitempty"    yaml:"input"    validate:"required,file" jsonschema:"required"`
-		Output   string                     `json:"output,omitempty"   yaml:"output"   validate:"required"      jsonschema:"required"`
+		Inline   *string                    `json:"inline,omitempty"   yaml:"inline"   validate:"required_without=Input"`
+		Input    *string                    `json:"input,omitempty"    yaml:"input"    validate:"required_without=Inline,file"`
+		Output   string                     `json:"output,omitempty"   yaml:"output"   validate:"required"                     jsonschema:"required"`
 		Ctx      interface{}                `json:"ctx,omitempty"      yaml:"ctx"`
 		Chmod    VizierChmod                `json:"chmod,omitempty"    yaml:"chmod"`
 		Chown    VizierChown                `json:"chown,omitempty"    yaml:"chown"    validate:"omitempty"`
