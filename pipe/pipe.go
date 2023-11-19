@@ -22,7 +22,7 @@ func New(p *Plumber) *TaskList[Pipe] {
 			return ProcessFlags(tl)
 		}).
 		Set(func(tl *TaskList[Pipe]) Job {
-			return tl.JobSequence(
+			return tl.JobParallel(
 				StepGenerator(tl).Job(),
 				tl.JobWaitForTerminator(),
 			)

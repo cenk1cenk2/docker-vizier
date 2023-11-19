@@ -17,7 +17,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 		Set(func(t *Task[Pipe]) error {
 			for _, step := range t.Pipe.Config.Steps {
 				func(step VizierStep) {
-					task := t.CreateSubtask(step.Name).
+					t.CreateSubtask(step.Name).
 						Set(func(t *Task[Pipe]) error {
 							if len(step.Permissions) > 0 {
 								st := t.CreateSubtask("permissions").
@@ -27,13 +27,16 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, permission := range step.Permissions {
-									handled := handleStepPermission(st, permission)
+									handleStepPermission(st, permission).
+										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+											pt.ExtendSubtask(func(job Job) Job {
+												if permission.Parallel {
+													return tl.JobParallel(job, st.Job())
+												}
 
-									if permission.Parallel {
-										handled.AddSelfToTheParentAsParallel()
-									} else {
-										handled.AddSelfToTheParentAsSequence()
-									}
+												return tl.JobSequence(job, st.Job())
+											})
+										})
 								}
 							}
 
@@ -45,13 +48,16 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, template := range step.Templates {
-									handled := handleTemplate(st, template)
+									handleTemplate(st, template).
+										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+											pt.ExtendSubtask(func(job Job) Job {
+												if template.Parallel {
+													return tl.JobParallel(job, st.Job())
+												}
 
-									if template.Parallel {
-										handled.AddSelfToTheParentAsParallel()
-									} else {
-										handled.AddSelfToTheParentAsSequence()
-									}
+												return tl.JobSequence(job, st.Job())
+											})
+										})
 								}
 							}
 
@@ -63,13 +69,16 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									AddSelfToTheParentAsSequence()
 
 								for _, command := range step.Commands {
-									handled := handleStepCommand(st, command)
+									handleStepCommand(st, command).
+										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+											pt.ExtendSubtask(func(job Job) Job {
+												if command.Parallel {
+													return tl.JobParallel(job, st.Job())
+												}
 
-									if command.Parallel {
-										handled.AddSelfToTheParentAsParallel()
-									} else {
-										handled.AddSelfToTheParentAsSequence()
-									}
+												return tl.JobSequence(job, st.Job())
+											})
+										})
 								}
 							}
 
@@ -101,13 +110,16 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 						}).
 						ShouldRunAfter(func(t *Task[Pipe]) error {
 							return t.RunSubtasks()
-						})
+						}).
+						AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+							pt.ExtendSubtask(func(job Job) Job {
+								if step.Parallel {
+									return tl.JobParallel(job, st.Job())
+								}
 
-					if step.Parallel {
-						task.AddSelfToTheParentAsParallel()
-					} else {
-						task.AddSelfToTheParentAsSequence()
-					}
+								return tl.JobSequence(job, st.Job())
+							})
+						})
 				}(step)
 			}
 
