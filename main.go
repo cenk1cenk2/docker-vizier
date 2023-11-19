@@ -4,6 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"gitlab.kilic.dev/docker/vizier/pipe"
+	"gitlab.kilic.dev/docker/vizier/schema"
 	. "gitlab.kilic.dev/libraries/plumber/v4"
 )
 
@@ -25,6 +26,20 @@ func main() {
 					return pipe.TL.RunJobs(
 						pipe.New(p).SetCliContext(ctx).Job(),
 					)
+				},
+				Commands: cli.Commands{
+					{
+						Name:        "generate",
+						Description: "Generate json schema",
+						Flags:       p.AppendFlags(schema.Flags),
+						Action: func(ctx *cli.Context) error {
+							tl := &schema.TL
+
+							return tl.RunJobs(
+								schema.New(p).SetCliContext(ctx).Job(),
+							)
+						},
+					},
 				},
 			}
 		}).

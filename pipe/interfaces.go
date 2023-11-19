@@ -8,13 +8,13 @@ import (
 
 type (
 	VizierChown struct {
-		User  *uint32 `json:"user,omitempty"  validate:"required"`
-		Group *uint32 `json:"group,omitempty"`
+		User  *uint32 `json:"user,omitempty"  validate:"required" jsonschema:"required,oneof_type=string"`
+		Group *uint32 `json:"group,omitempty"                     jsonschema:"oneof_type=string"`
 	}
 
 	VizierChmod struct {
-		File *os.FileMode `json:"file,omitempty"`
-		Dir  *os.FileMode `json:"dir,omitempty"`
+		File *os.FileMode `json:"file,omitempty" jsonschema:"oneof_type=string"`
+		Dir  *os.FileMode `json:"dir,omitempty"  jsonschema:"oneof_type=string"`
 	}
 )
 
@@ -22,13 +22,13 @@ type (
 	VizierStepCommandRetry struct {
 		Retries int          `json:"retries,omitempty" validate:"gte=0"`
 		Always  bool         `json:"always,omitempty"`
-		Delay   JsonDuration `json:"delay,omitempty"`
+		Delay   JsonDuration `json:"delay,omitempty"                    jsonschema:"oneof_type=string"`
 	}
 
 	VizierStepCommandLogLevel struct {
-		Stdout   LogLevel `json:"stdout,omitempty"`
-		Stderr   LogLevel `json:"stderr,omitempty"`
-		Lifetime LogLevel `json:"lifetime,omitempty"`
+		Stdout   LogLevel `json:"stdout,omitempty"   jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
+		Stderr   LogLevel `json:"stderr,omitempty"   jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
+		Lifetime LogLevel `json:"lifetime,omitempty" jsonschema:"oneof_type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace"`
 	}
 
 	VizierStepCommandRunAs struct {
@@ -43,7 +43,7 @@ type (
 	VizierStepCommand struct {
 		Name        string                    `json:"name,omitempty"`
 		Cwd         string                    `json:"cwd,omitempty"         validate:"omitempty,dir"`
-		Command     string                    `json:"command"               validate:"required"`
+		Command     string                    `json:"command"               validate:"required"      jsonschema:"required"`
 		Retry       VizierStepCommandRetry    `json:"retry,omitempty"       validate:"omitempty"`
 		Log         VizierStepCommandLogLevel `json:"log,omitempty"         validate:"omitempty"`
 		Environment map[string]string         `json:"environment,omitempty"`
@@ -52,15 +52,15 @@ type (
 	}
 
 	VizierStepPermission struct {
-		Path      *string     `json:"path,omitempty"      validate:"required"`
+		Path      *string     `json:"path,omitempty"      validate:"required"  jsonschema:"required"`
 		Chown     VizierChown `json:"chown,omitempty"     validate:"omitempty"`
 		Chmod     VizierChmod `json:"chmod,omitempty"     validate:"omitempty"`
 		Recursive bool        `json:"recursive,omitempty"`
 	}
 
 	VizierStepTemplate struct {
-		Input  string      `json:"input,omitempty"  validate:"required,file"`
-		Output string      `json:"output,omitempty" validate:"required"`
+		Input  string      `json:"input,omitempty"  validate:"required,file" jsonschema:"required"`
+		Output string      `json:"output,omitempty" validate:"required"      jsonschema:"required"`
 		Ctx    interface{} `json:"ctx,omitempty"`
 		Chmod  VizierChmod `json:"chmod,omitempty"`
 		Chown  VizierChown `json:"chown,omitempty"  validate:"omitempty"`
@@ -74,5 +74,9 @@ type (
 		Delay       JsonDuration           `json:"delay,omitempty"`
 		Background  bool                   `json:"background,omitempty"`
 		Parallel    bool                   `json:"parallel,omitempty"`
+	}
+
+	VizierConfig struct {
+		Steps []VizierStep `json:"steps" validate:"required,dive" jsonschema:"required"`
 	}
 )

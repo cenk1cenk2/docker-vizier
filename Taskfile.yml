@@ -103,6 +103,14 @@ tasks:
       - go run . MARKDOWN_DOC
       - go run . MARKDOWN_EMBED
 
+  generate:schema:
+    desc: Generates json schema
+    interactive: true
+    env:
+      LOG_LEVEL: trace
+    cmds:
+      - go run . generate
+
   help:
     desc: Generates help for the application.
     cmds:

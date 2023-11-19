@@ -14,7 +14,7 @@ import (
 func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 	return tl.CreateTask().
 		Set(func(t *Task[Pipe]) error {
-			for _, step := range t.Pipe.Steps {
+			for _, step := range t.Pipe.Steps.Steps {
 				func(step VizierStep) {
 					t.CreateSubtask(step.Name).
 						Set(func(t *Task[Pipe]) error {

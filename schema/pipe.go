@@ -1,17 +1,12 @@
-package pipe
+package schema
 
 import (
 	. "gitlab.kilic.dev/libraries/plumber/v4"
 )
 
 type (
-	Config struct {
-		File string
-	}
-
 	Pipe struct {
-		Config
-		Steps VizierConfig `validate:"required,dive"`
+		Output string
 	}
 )
 
@@ -27,8 +22,7 @@ func New(p *Plumber) *TaskList[Pipe] {
 		}).
 		Set(func(tl *TaskList[Pipe]) Job {
 			return tl.JobSequence(
-				StepGenerator(tl).Job(),
-				tl.JobWaitForTerminator(),
+				Generate(tl).Job(),
 			)
 		})
 }
