@@ -17,35 +17,40 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 			for _, step := range t.Pipe.Steps {
 				func(step VizierStep) {
 					t.CreateSubtask(step.Name).
-						ShouldRunBefore(func(t *Task[Pipe]) error {
-							st := t.CreateSubtask("permissions").
-								ShouldRunAfter(func(t *Task[Pipe]) error {
-									return t.RunSubtasks()
-								})
-
-							for _, permission := range step.Permissions {
-								handleStepPermission(st, permission).AddSelfToTheParentAsParallel()
-							}
-
-							st = t.CreateSubtask("templates").
-								ShouldRunAfter(func(t *Task[Pipe]) error {
-									return t.RunSubtasks()
-								}).
-								AddSelfToTheParentAsSequence()
-							for _, template := range step.Templates {
-								handleTemplate(st, template).AddSelfToTheParentAsParallel()
-							}
-
-							return nil
-						}).
 						Set(func(t *Task[Pipe]) error {
-							for _, command := range step.Commands {
-								st := handleStepCommand(t, command)
+							if len(step.Permissions) > 0 {
+								st := t.CreateSubtask("permissions").
+									ShouldRunAfter(func(t *Task[Pipe]) error {
+										return t.RunSubtasks()
+									}).
+									AddSelfToTheParentAsSequence()
 
-								if step.Parallel {
-									st.AddSelfToTheParentAsParallel()
-								} else {
-									st.AddSelfToTheParentAsSequence()
+								for _, permission := range step.Permissions {
+									handleStepPermission(st, permission).AddSelfToTheParentAsParallel()
+								}
+							}
+
+							if len(step.Templates) > 0 {
+								st := t.CreateSubtask("templates").
+									ShouldRunAfter(func(t *Task[Pipe]) error {
+										return t.RunSubtasks()
+									}).
+									AddSelfToTheParentAsSequence()
+
+								for _, template := range step.Templates {
+									handleTemplate(st, template).AddSelfToTheParentAsParallel()
+								}
+							}
+
+							if len(step.Commands) > 0 {
+								for _, command := range step.Commands {
+									st := handleStepCommand(t, command)
+
+									if step.Parallel {
+										st.AddSelfToTheParentAsParallel()
+									} else {
+										st.AddSelfToTheParentAsSequence()
+									}
 								}
 							}
 
@@ -168,14 +173,14 @@ func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 				return err
 			}
 
-			render, err := InlineTemplate(string(tpl), template.Inject)
+			render, err := InlineTemplate(string(tpl), template.Ctx)
 
 			if err != nil {
 				return err
 			}
 
 			t.Log.Infof("Created file from template.")
-			t.Log.Debugf("Injected context: %+v", template.Inject)
+			t.Log.Debugf("Injected context: %+v", template.Ctx)
 
 			if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
 				return err

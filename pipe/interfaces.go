@@ -56,7 +56,7 @@ type (
 	VizierStepTemplate struct {
 		Input  string      `json:"input,omitempty"  validate:"required,file"`
 		Output string      `json:"output,omitempty" validate:"required"`
-		Inject interface{} `json:"inject,omitempty"`
+		Ctx    interface{} `json:"ctx,omitempty"`
 		Chmod  VizierChmod `json:"chmod,omitempty"`
 		Chown  VizierChown `json:"chown,omitempty"  validate:"omitempty"`
 	}
