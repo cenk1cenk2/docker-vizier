@@ -157,12 +157,10 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						}
 					}
 
-					if command.Pipe.Stdin {
-						c.Command.Stdin = os.Stdin
-					}
-
 					if command.Script != nil {
 						stdin, err := c.Command.StdinPipe()
+
+						defer stdin.Close()
 
 						if err != nil {
 							return err
@@ -198,6 +196,16 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 							if err != nil {
 								return err
 							}
+						}
+
+						if command.Pipe.Stdin && (command.Script.File != nil || command.Script.Inline != nil) {
+							_, err := io.Copy(stdin, os.Stdin)
+
+							if err != nil {
+								return err
+							}
+						} else if command.Pipe.Stdin {
+							c.Command.Stdin = os.Stdin
 						}
 					}
 
