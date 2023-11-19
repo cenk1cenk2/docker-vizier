@@ -32,6 +32,7 @@ func main() {
 						Name:        "generate",
 						Description: "Generate json schema",
 						Flags:       p.AppendFlags(schema.Flags),
+						Hidden:      true,
 						Action: func(ctx *cli.Context) error {
 							tl := &schema.TL
 

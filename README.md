@@ -18,8 +18,6 @@ some description
 
 <!-- clidocs -->
 
-## Global Flags
-
 | Flag / Environment |  Description   |  Type    | Required | Default |
 |---------------- | --------------- | --------------- |  --------------- |  --------------- |
 | `$VIZIER_STEPS` | Steps to run for the application, will be ignored when configuration file is read. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
@@ -36,19 +34,5 @@ some description
 | Flag / Environment |  Description   |  Type    | Required | Default |
 |---------------- | --------------- | --------------- |  --------------- |  --------------- |
 | `$VIZIER_CONFIG` | Configuration file to read from. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
-
-## Commands
-
-### `generate`
-
-Generate json schema
-
-`vizier generate [GLOBAL FLAGS] [FLAGS]`
-
-#### Flags
-
-| Flag / Environment |  Description   |  Type    | Required | Default |
-|---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$VIZIER_SCHEMA_OUTPUT` | Schema file to write to. | `String` | `false` | schema.json |
 
 <!-- clidocsstop -->
