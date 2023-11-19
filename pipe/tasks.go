@@ -220,7 +220,7 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Debugf("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
+		t.Log.Tracef("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
 	}
 
 	if info.IsDir() && permission.Chmod.Dir != nil {
@@ -230,7 +230,7 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Debugf("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
+		t.Log.Tracef("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
 	} else if !info.IsDir() && permission.Chmod.File != nil {
 		err := os.Chmod(path, *permission.Chmod.File)
 
@@ -238,7 +238,7 @@ func handleStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission,
 			return err
 		}
 
-		t.Log.Debugf("Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
+		t.Log.Tracef("Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
 	}
 
 	return nil
