@@ -157,6 +157,10 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						}
 					}
 
+					if command.Pipe.Stdin {
+						c.Command.Stdin = os.Stdin
+					}
+
 					if command.Script != nil {
 						stdin, err := c.Command.StdinPipe()
 

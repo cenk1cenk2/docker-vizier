@@ -55,6 +55,10 @@ type (
 		VizierChown
 	}
 
+	VizierStepCommandPipe struct {
+		Stdin bool `json:"stdin,omitempty" yaml:"stdin"`
+	}
+
 	VizierStepCommandScript struct {
 		Inline *string     `json:"inline,omitempty" yaml:"inline" validate:"required_without=File"`
 		File   *string     `json:"file,omitempty"   yaml:"file"   validate:"required_without=Inline,omitempty,file"`
@@ -77,6 +81,7 @@ type (
 		Health      VizierStepCommandHealth   `json:"health,omitempty"      yaml:"health"      validate:"omitempty"`
 		Parallel    bool                      `json:"parallel,omitempty"    yaml:"parallel"`
 		Log         VizierStepCommandLogLevel `json:"log,omitempty"         yaml:"log"         validate:"omitempty"`
+		Pipe        VizierStepCommandPipe     `json:"pipe,omitempty"        yaml:"pipe"        validate:"omitempty"`
 	}
 
 	VizierStepPermission struct {
