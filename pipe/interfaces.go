@@ -70,7 +70,7 @@ type (
 		Name        string                    `json:"name,omitempty"        yaml:"name"`
 		Cwd         string                    `json:"cwd,omitempty"         yaml:"cwd"         validate:"omitempty,dir"`
 		Command     string                    `json:"command"               yaml:"command"     validate:"required"      jsonschema:"required"`
-		Script      *VizierStepCommandScript  `json:"script"                yaml:"script"      validate:"omitempty"`
+		Script      *VizierStepCommandScript  `json:"script,omitempty"      yaml:"script"      validate:"omitempty"`
 		Retry       VizierStepCommandRetry    `json:"retry,omitempty"       yaml:"retry"       validate:"omitempty"`
 		Environment map[string]string         `json:"environment,omitempty" yaml:"environment"`
 		RunAs       *VizierStepCommandRunAs   `json:"runAs,omitempty"       yaml:"runAs"       validate:"omitempty"`
