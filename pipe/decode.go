@@ -6,16 +6,18 @@ import (
 	"os"
 	"os/user"
 	"strconv"
+	"strings"
 	"time"
 
+	. "gitlab.kilic.dev/libraries/plumber/v4"
 	"gopkg.in/yaml.v3"
 )
 
-type JsonDuration struct {
+type SerializedDuration struct {
 	time.Duration
 }
 
-func (field *JsonDuration) UnmarshalJSON(b []byte) error {
+func (field *SerializedDuration) UnmarshalJSON(b []byte) error {
 	var unmarshalled interface{}
 
 	err := json.Unmarshal(b, &unmarshalled)
@@ -39,7 +41,7 @@ func (field *JsonDuration) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func (field *JsonDuration) UnmarshalYAML(value *yaml.Node) error {
+func (field *SerializedDuration) UnmarshalYAML(value *yaml.Node) error {
 	var unmarshalled interface{}
 
 	err := value.Decode(&unmarshalled)
@@ -58,6 +60,72 @@ func (field *JsonDuration) UnmarshalYAML(value *yaml.Node) error {
 		}
 	default:
 		return fmt.Errorf("Invalid duration: %#v", unmarshalled)
+	}
+
+	return nil
+}
+
+type TemplatableBoolean struct {
+	bool
+}
+
+func (field *TemplatableBoolean) UnmarshalJSON(b []byte) error {
+	var unmarshalled interface{}
+
+	err := json.Unmarshal(b, &unmarshalled)
+
+	if err != nil {
+		return err
+	}
+
+	switch value := unmarshalled.(type) {
+	case bool:
+		field.bool = value
+	case string:
+		tpl, err := InlineTemplate[any](value, nil)
+
+		if err != nil {
+			return err
+		}
+
+		if strings.ToLower(strings.TrimSpace(tpl)) == "true" {
+			field.bool = true
+		} else {
+			field.bool = false
+		}
+	default:
+		return fmt.Errorf("Invalid field: %#v", unmarshalled)
+	}
+
+	return nil
+}
+
+func (field *TemplatableBoolean) UnmarshalYAML(value *yaml.Node) error {
+	var unmarshalled interface{}
+
+	err := value.Decode(&unmarshalled)
+
+	if err != nil {
+		return err
+	}
+
+	switch value := unmarshalled.(type) {
+	case bool:
+		field.bool = value
+	case string:
+		tpl, err := InlineTemplate[any](value, nil)
+
+		if err != nil {
+			return err
+		}
+
+		if strings.ToLower(strings.TrimSpace(tpl)) == "true" {
+			field.bool = true
+		} else {
+			field.bool = false
+		}
+	default:
+		return fmt.Errorf("Invalid field: %#v", unmarshalled)
 	}
 
 	return nil

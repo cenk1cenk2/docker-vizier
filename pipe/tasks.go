@@ -18,6 +18,9 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 			for _, step := range t.Pipe.Config.Steps {
 				func(step VizierStep) {
 					t.CreateSubtask(step.Name).
+						ShouldDisable(func(t *Task[Pipe]) bool {
+							return step.ShouldDisable.bool
+						}).
 						Set(func(t *Task[Pipe]) error {
 							if len(step.Permissions) > 0 {
 								st := t.CreateSubtask("permissions").
@@ -132,6 +135,9 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 
 func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 	return t.CreateSubtask(command.Name).
+		ShouldDisable(func(t *Task[Pipe]) bool {
+			return command.ShouldDisable.bool
+		}).
 		Set(func(t *Task[Pipe]) error {
 			run := strings.Split(command.Command, " ")
 
@@ -229,6 +235,30 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 				SetDir(command.Cwd).
 				SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
+				SetJobWrapper(func(job Job) Job {
+					if command.Delay.Duration > 0 {
+						t.Log.Logf(
+							command.Log.Delay,
+							"Command will run with delay: %s -> %s",
+							command.Name,
+							command.Delay.String(),
+						)
+
+						job = TL.JobDelay(job, command.Delay.Duration)
+					}
+
+					if command.Background {
+						t.Log.Logf(
+							command.Log.Background,
+							"Command will run in the background: %s",
+							command.Name,
+						)
+
+						job = TL.JobBackground(job)
+					}
+
+					return job
+				}).
 				EnableTerminator().
 				AddSelfToTheTask()
 
@@ -241,6 +271,9 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[Pipe] {
 	return t.CreateSubtask(*permission.Path).
+		ShouldDisable(func(t *Task[Pipe]) bool {
+			return permission.ShouldDisable.bool
+		}).
 		Set(func(t *Task[Pipe]) error {
 			if !permission.Recursive {
 				info, err := os.Lstat(*permission.Path)
@@ -265,6 +298,9 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 	if template.Input != nil {
 		return t.CreateSubtask(fmt.Sprintf("%s -> %s", *template.Input, template.Output)).
+			ShouldDisable(func(t *Task[Pipe]) bool {
+				return template.ShouldDisable.bool
+			}).
 			Set(func(t *Task[Pipe]) error {
 				tpl, err := os.ReadFile(*template.Input)
 

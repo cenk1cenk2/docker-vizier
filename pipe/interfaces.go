@@ -22,9 +22,9 @@ type (
 
 type (
 	VizierStepCommandRetry struct {
-		Retries int          `json:"retries,omitempty" yaml:"retries" validate:"gte=0"`
-		Always  bool         `json:"always,omitempty"  yaml:"always"`
-		Delay   JsonDuration `json:"delay,omitempty"   yaml:"delay"                    jsonschema:"type=string"`
+		Retries int                `json:"retries,omitempty" yaml:"retries" validate:"gte=0"`
+		Always  bool               `json:"always,omitempty"  yaml:"always"`
+		Delay   SerializedDuration `json:"delay,omitempty"   yaml:"delay"                    jsonschema:"type=string"`
 	}
 
 	VizierStepCommandLogLevel struct {
@@ -32,6 +32,8 @@ type (
 		Stderr      LogLevel `json:"stderr,omitempty"      yaml:"stderr"      jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace" default:"warn"`
 		Lifetime    LogLevel `json:"lifetime,omitempty"    yaml:"lifetime"    jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace" default:"info"`
 		Permissions LogLevel `json:"permissions,omitempty" yaml:"permissions" jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace" default:"debug"`
+		Delay       LogLevel `json:"delay,omitempty"       yaml:"delay"       jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace" default:"warn"`
+		Background  LogLevel `json:"background,omitempty"  yaml:"background"  jsonschema:"type=string,enum=fatal,enum=error,enum=warn,enum=info,enum=debug,enum=trace" default:"debug"`
 	}
 
 	VizierStepPermissionLogLevel struct {
@@ -71,48 +73,54 @@ type (
 	}
 
 	VizierStepCommand struct {
-		Name        string                    `json:"name,omitempty"        yaml:"name"`
-		Cwd         string                    `json:"cwd,omitempty"         yaml:"cwd"         validate:"omitempty,dir"`
-		Command     string                    `json:"command"               yaml:"command"     validate:"required"      jsonschema:"required"`
-		Script      *VizierStepCommandScript  `json:"script,omitempty"      yaml:"script"      validate:"omitempty"`
-		Retry       VizierStepCommandRetry    `json:"retry,omitempty"       yaml:"retry"       validate:"omitempty"`
-		Environment map[string]string         `json:"environment,omitempty" yaml:"environment"`
-		RunAs       *VizierStepCommandRunAs   `json:"runAs,omitempty"       yaml:"runAs"       validate:"omitempty"`
-		Health      VizierStepCommandHealth   `json:"health,omitempty"      yaml:"health"      validate:"omitempty"`
-		Parallel    bool                      `json:"parallel,omitempty"    yaml:"parallel"`
-		Log         VizierStepCommandLogLevel `json:"log,omitempty"         yaml:"log"         validate:"omitempty"`
-		Pipe        VizierStepCommandPipe     `json:"pipe,omitempty"        yaml:"pipe"        validate:"omitempty"`
+		Name          string                    `json:"name,omitempty"          yaml:"name"`
+		Cwd           string                    `json:"cwd,omitempty"           yaml:"cwd"           validate:"omitempty,dir"`
+		Command       string                    `json:"command"                 yaml:"command"       validate:"required"      jsonschema:"required"`
+		Script        *VizierStepCommandScript  `json:"script,omitempty"        yaml:"script"        validate:"omitempty"`
+		Retry         VizierStepCommandRetry    `json:"retry,omitempty"         yaml:"retry"         validate:"omitempty"`
+		Environment   map[string]string         `json:"environment,omitempty"   yaml:"environment"`
+		RunAs         *VizierStepCommandRunAs   `json:"runAs,omitempty"         yaml:"runAs"         validate:"omitempty"`
+		Health        VizierStepCommandHealth   `json:"health,omitempty"        yaml:"health"        validate:"omitempty"`
+		ShouldDisable TemplatableBoolean        `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty"     jsonschema:"oneof_type=string;boolean"`
+		Parallel      bool                      `json:"parallel,omitempty"      yaml:"parallel"`
+		Delay         SerializedDuration        `json:"delay,omitempty"         yaml:"delay"                                  jsonschema:"type=string"`
+		Background    bool                      `json:"background,omitempty"    yaml:"background"`
+		Log           VizierStepCommandLogLevel `json:"log,omitempty"           yaml:"log"           validate:"omitempty"`
+		Pipe          VizierStepCommandPipe     `json:"pipe,omitempty"          yaml:"pipe"          validate:"omitempty"`
 	}
 
 	VizierStepPermission struct {
-		Path      *string                      `json:"path,omitempty"      yaml:"path"      validate:"required"  jsonschema:"required"`
-		Chown     VizierChown                  `json:"chown,omitempty"     yaml:"chown"     validate:"omitempty"`
-		Chmod     VizierChmod                  `json:"chmod,omitempty"     yaml:"chmod"     validate:"omitempty"`
-		Recursive bool                         `json:"recursive,omitempty" yaml:"recursive"`
-		Parallel  bool                         `json:"parallel,omitempty"  yaml:"parallel"`
-		Log       VizierStepPermissionLogLevel `json:"log,omitempty"       yaml:"log"       validate:"omitempty"`
+		Path          *string                      `json:"path,omitempty"          yaml:"path"          validate:"required"  jsonschema:"required"`
+		Chown         VizierChown                  `json:"chown,omitempty"         yaml:"chown"         validate:"omitempty"`
+		Chmod         VizierChmod                  `json:"chmod,omitempty"         yaml:"chmod"         validate:"omitempty"`
+		Recursive     bool                         `json:"recursive,omitempty"     yaml:"recursive"`
+		ShouldDisable TemplatableBoolean           `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty" jsonschema:"oneof_type=string;boolean"`
+		Parallel      bool                         `json:"parallel,omitempty"      yaml:"parallel"`
+		Log           VizierStepPermissionLogLevel `json:"log,omitempty"           yaml:"log"           validate:"omitempty"`
 	}
 
 	VizierStepTemplate struct {
-		Inline   *string                    `json:"inline,omitempty"   yaml:"inline"   validate:"required_without=Input"`
-		Input    *string                    `json:"input,omitempty"    yaml:"input"    validate:"required_without=Inline,file"`
-		Output   string                     `json:"output,omitempty"   yaml:"output"   validate:"required"                     jsonschema:"required"`
-		Ctx      interface{}                `json:"ctx,omitempty"      yaml:"ctx"`
-		Chmod    VizierChmod                `json:"chmod,omitempty"    yaml:"chmod"`
-		Chown    VizierChown                `json:"chown,omitempty"    yaml:"chown"    validate:"omitempty"`
-		Parallel bool                       `json:"parallel,omitempty" yaml:"parallel"`
-		Log      VizierStepTemplateLogLevel `json:"log,omitempty"      yaml:"log"      validate:"omitempty"`
+		Inline        *string                    `json:"inline,omitempty"        yaml:"inline"        validate:"required_without=Input"`
+		Input         *string                    `json:"input,omitempty"         yaml:"input"         validate:"required_without=Inline,file"`
+		Output        string                     `json:"output,omitempty"        yaml:"output"        validate:"required"                     jsonschema:"required"`
+		Ctx           interface{}                `json:"ctx,omitempty"           yaml:"ctx"`
+		Chmod         VizierChmod                `json:"chmod,omitempty"         yaml:"chmod"`
+		Chown         VizierChown                `json:"chown,omitempty"         yaml:"chown"         validate:"omitempty"`
+		ShouldDisable TemplatableBoolean         `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty"                    jsonschema:"oneof_type=string;boolean"`
+		Parallel      bool                       `json:"parallel,omitempty"      yaml:"parallel"`
+		Log           VizierStepTemplateLogLevel `json:"log,omitempty"           yaml:"log"           validate:"omitempty"`
 	}
 
 	VizierStep struct {
-		Name        string                 `json:"name,omitempty"        yaml:"name"`
-		Commands    []VizierStepCommand    `json:"commands,omitempty"    yaml:"commands"    validate:"omitempty,dive"`
-		Permissions []VizierStepPermission `json:"permissions,omitempty" yaml:"permissions" validate:"omitempty,dive"`
-		Templates   []VizierStepTemplate   `json:"templates,omitempty"   yaml:"templates"   validate:"omitempty,dive"`
-		Delay       JsonDuration           `json:"delay,omitempty"       yaml:"delay"                                 jsonschema:"type=string"`
-		Background  bool                   `json:"background,omitempty"  yaml:"bacground"`
-		Parallel    bool                   `json:"parallel,omitempty"    yaml:"parallel"`
-		Log         VizierStepLogLevel     `json:"log,omitempty"         yaml:"log"         validate:"omitempty"`
+		Name          string                 `json:"name,omitempty"          yaml:"name"`
+		Commands      []VizierStepCommand    `json:"commands,omitempty"      yaml:"commands"      validate:"omitempty,dive"`
+		Permissions   []VizierStepPermission `json:"permissions,omitempty"   yaml:"permissions"   validate:"omitempty,dive"`
+		Templates     []VizierStepTemplate   `json:"templates,omitempty"     yaml:"templates"     validate:"omitempty,dive"`
+		ShouldDisable TemplatableBoolean     `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty"      jsonschema:"oneof_type=string;boolean"`
+		Delay         SerializedDuration     `json:"delay,omitempty"         yaml:"delay"                                   jsonschema:"type=string"`
+		Background    bool                   `json:"background,omitempty"    yaml:"background"`
+		Parallel      bool                   `json:"parallel,omitempty"      yaml:"parallel"`
+		Log           VizierStepLogLevel     `json:"log,omitempty"           yaml:"log"           validate:"omitempty"`
 	}
 
 	VizierConfig struct {
