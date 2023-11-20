@@ -16,8 +16,21 @@ func Generate(tl *TaskList[Pipe]) *Task[Pipe] {
 
 			for k, v := range schema.Definitions {
 				switch k {
-				case "JsonDuration":
+				case "SerializedDuration":
 					v.Type = "string"
+					v.Required = nil
+					v.Properties = nil
+					v.AdditionalProperties = nil
+				case "TemplatableBoolean":
+					v.Type = ""
+					v.OneOf = []*jsonschema.Schema{
+						{
+							Type: "string",
+						},
+						{
+							Type: "boolean",
+						},
+					}
 					v.Required = nil
 					v.Properties = nil
 					v.AdditionalProperties = nil
