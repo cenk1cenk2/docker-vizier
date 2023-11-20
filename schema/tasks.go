@@ -6,7 +6,7 @@ import (
 	"github.com/invopop/jsonschema"
 
 	"gitlab.kilic.dev/docker/vizier/pipe"
-	. "gitlab.kilic.dev/libraries/plumber/v4"
+	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
 func Generate(tl *TaskList[Pipe]) *Task[Pipe] {

@@ -3,7 +3,7 @@ package pipe
 import (
 	"os"
 
-	. "gitlab.kilic.dev/libraries/plumber/v4"
+	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
 //revive:disable:line-length-limit

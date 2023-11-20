@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	"github.com/urfave/cli/v2"
-	. "gitlab.kilic.dev/libraries/plumber/v4"
+	. "gitlab.kilic.dev/libraries/plumber/v5"
 	"gopkg.in/yaml.v3"
 )
 

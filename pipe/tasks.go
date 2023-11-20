@@ -9,7 +9,7 @@ import (
 	"strings"
 	"syscall"
 
-	. "gitlab.kilic.dev/libraries/plumber/v4"
+	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
 func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
@@ -87,12 +87,11 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 
 							return nil
 						}).
-						SetJobWrapper(func(job Job) Job {
+						SetJobWrapper(func(job Job, t *Task[Pipe]) Job {
 							if step.Delay.Duration > 0 {
 								t.Log.Logf(
 									step.Log.Delay,
-									"Task will run with delay: %s -> %s",
-									step.Name,
+									"Task will run with delay: %s",
 									step.Delay.String(),
 								)
 
@@ -102,8 +101,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 							if step.Background {
 								t.Log.Logf(
 									step.Log.Background,
-									"Task will run in the background: %s",
-									step.Name,
+									"Task will run in the background.",
 								)
 
 								job = TL.JobBackground(job)
@@ -235,12 +233,12 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 				SetDir(command.Cwd).
 				SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
-				SetJobWrapper(func(job Job) Job {
+				SetJobWrapper(func(job Job, c *Command[Pipe]) Job {
 					if command.Delay.Duration > 0 {
 						t.Log.Logf(
 							command.Log.Delay,
 							"Command will run with delay: %s -> %s",
-							command.Name,
+							c.GetFormattedCommand(),
 							command.Delay.String(),
 						)
 
@@ -251,7 +249,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						t.Log.Logf(
 							command.Log.Background,
 							"Command will run in the background: %s",
-							command.Name,
+							c.GetFormattedCommand(),
 						)
 
 						job = TL.JobBackground(job)

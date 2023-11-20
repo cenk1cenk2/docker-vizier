@@ -5,7 +5,7 @@ import (
 
 	"gitlab.kilic.dev/docker/vizier/pipe"
 	"gitlab.kilic.dev/docker/vizier/schema"
-	. "gitlab.kilic.dev/libraries/plumber/v4"
+	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
 func main() {
