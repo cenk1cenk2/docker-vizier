@@ -20,7 +20,7 @@ some description
 
 | Flag / Environment |  Description   |  Type    | Required | Default |
 |---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$VIZIER_STEPS` | Steps to run for the application, will be ignored when configuration file is read. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
+| `$VIZIER_CONFIG` | Steps to run for the application, will be ignored when configuration file is read. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
 
 ### CLI
 
@@ -33,6 +33,6 @@ some description
 
 | Flag / Environment |  Description   |  Type    | Required | Default |
 |---------------- | --------------- | --------------- |  --------------- |  --------------- |
-| `$VIZIER_CONFIG` | Configuration file to read from. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
+| `$VIZIER_CONFIG_FILE` | Configuration file to read from. | `String`<br/>`json(https://raw.githubusercontent.com/cenk1cenk2/docker-vizier/main/schema.json)` | `false` |  |
 
 <!-- clidocsstop -->
