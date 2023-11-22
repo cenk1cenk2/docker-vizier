@@ -22,9 +22,9 @@ type (
 
 type (
 	VizierStepCommandRetry struct {
-		Retries int                `json:"retries,omitempty" yaml:"retries" validate:"gte=0"`
+		Retries uint32             `json:"retries,omitempty" yaml:"retries"`
 		Always  bool               `json:"always,omitempty"  yaml:"always"`
-		Delay   SerializedDuration `json:"delay,omitempty"   yaml:"delay"                    jsonschema:"type=string"`
+		Delay   SerializedDuration `json:"delay,omitempty"   yaml:"delay"   jsonschema:"type=string"`
 	}
 
 	VizierStepCommandLogLevel struct {

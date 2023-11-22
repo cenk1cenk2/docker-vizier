@@ -11,123 +11,118 @@ import (
 	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
-func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
-	return tl.CreateTask().
-		Set(func(t *Task[Pipe]) error {
-			for _, step := range t.Pipe.Config.Steps {
-				func(step VizierStep) {
-					t.CreateSubtask(step.Name).
-						ShouldDisable(func(t *Task[Pipe]) bool {
-							return step.ShouldDisable.bool
-						}).
-						Set(func(t *Task[Pipe]) error {
-							if len(step.Permissions) > 0 {
-								st := t.CreateSubtask("permissions").
-									ShouldRunAfter(func(t *Task[Pipe]) error {
-										return t.RunSubtasks()
-									}).
-									AddSelfToTheParentAsSequence()
+func StepGenerator(tl *TaskList[Pipe]) Job {
+	job := tl.CreateBasicJob(func() error {
+		return nil
+	})
 
-								for _, permission := range step.Permissions {
-									handleStepPermission(st, permission).
-										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
-											pt.ExtendSubtask(func(job Job) Job {
-												if permission.Parallel {
-													return tl.JobParallel(job, st.Job())
-												}
+	for _, step := range tl.Pipe.Config.Steps {
+		func(step VizierStep) {
+			task := tl.CreateTask(step.Name).
+				ShouldDisable(func(t *Task[Pipe]) bool {
+					return step.ShouldDisable.bool
+				}).
+				Set(func(t *Task[Pipe]) error {
+					if len(step.Permissions) > 0 {
+						st := t.CreateSubtask("permissions").
+							ShouldRunAfter(func(t *Task[Pipe]) error {
+								return t.RunSubtasks()
+							}).
+							AddSelfToTheParentAsSequence()
 
-												return tl.JobSequence(job, st.Job())
-											})
-										})
-								}
-							}
+						for _, permission := range step.Permissions {
+							handleStepPermission(st, permission).
+								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+									pt.ExtendSubtask(func(job Job) Job {
+										if permission.Parallel {
+											return tl.JobParallel(job, st.Job())
+										}
 
-							if len(step.Templates) > 0 {
-								st := t.CreateSubtask("templates").
-									ShouldRunAfter(func(t *Task[Pipe]) error {
-										return t.RunSubtasks()
-									}).
-									AddSelfToTheParentAsSequence()
+										return tl.JobSequence(job, st.Job())
+									})
+								})
+						}
+					}
 
-								for _, template := range step.Templates {
-									handleTemplate(st, template).
-										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
-											pt.ExtendSubtask(func(job Job) Job {
-												if template.Parallel {
-													return tl.JobParallel(job, st.Job())
-												}
+					if len(step.Templates) > 0 {
+						st := t.CreateSubtask("templates").
+							ShouldRunAfter(func(t *Task[Pipe]) error {
+								return t.RunSubtasks()
+							}).
+							AddSelfToTheParentAsSequence()
 
-												return tl.JobSequence(job, st.Job())
-											})
-										})
-								}
-							}
+						for _, template := range step.Templates {
+							handleTemplate(st, template).
+								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+									pt.ExtendSubtask(func(job Job) Job {
+										if template.Parallel {
+											return tl.JobParallel(job, st.Job())
+										}
 
-							if len(step.Commands) > 0 {
-								st := t.CreateSubtask().
-									ShouldRunAfter(func(t *Task[Pipe]) error {
-										return t.RunSubtasks()
-									}).
-									AddSelfToTheParentAsSequence()
+										return tl.JobSequence(job, st.Job())
+									})
+								})
+						}
+					}
 
-								for _, command := range step.Commands {
-									handleStepCommand(st, command).
-										AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
-											pt.ExtendSubtask(func(job Job) Job {
-												if command.Parallel {
-													return tl.JobParallel(job, st.Job())
-												}
+					if len(step.Commands) > 0 {
+						st := t.CreateSubtask().
+							ShouldRunAfter(func(t *Task[Pipe]) error {
+								return t.RunSubtasks()
+							}).
+							AddSelfToTheParentAsSequence()
 
-												return tl.JobSequence(job, st.Job())
-											})
-										})
-								}
-							}
+						for _, command := range step.Commands {
+							handleStepCommand(st, command).
+								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+									pt.ExtendSubtask(func(job Job) Job {
+										if command.Parallel {
+											return tl.JobParallel(job, st.Job())
+										}
 
-							return nil
-						}).
-						SetJobWrapper(func(job Job, t *Task[Pipe]) Job {
-							if step.Delay.Duration > 0 {
-								t.Log.Logf(
-									step.Log.Delay,
-									"Task will run with delay: %s",
-									step.Delay.String(),
-								)
+										return tl.JobSequence(job, st.Job())
+									})
+								})
+						}
+					}
 
-								job = t.TL.JobDelay(job, step.Delay.Duration)
-							}
+					return nil
+				}).
+				SetJobWrapper(func(job Job, t *Task[Pipe]) Job {
+					if step.Delay.Duration > 0 {
+						t.Log.Logf(
+							step.Log.Delay,
+							"Task will run with delay: %s",
+							step.Delay.String(),
+						)
 
-							if step.Background {
-								t.Log.Logf(
-									step.Log.Background,
-									"Task will run in the background.",
-								)
+						job = t.TL.JobDelay(job, step.Delay.Duration)
+					}
 
-								job = t.TL.JobBackground(job)
-							}
+					if step.Background {
+						t.Log.Logf(
+							step.Log.Background,
+							"Task will run in the background.",
+						)
 
-							return job
-						}).
-						ShouldRunAfter(func(t *Task[Pipe]) error {
-							return t.RunSubtasks()
-						}).
-						AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
-							pt.ExtendSubtask(func(job Job) Job {
-								if step.Parallel {
-									return tl.JobParallel(job, st.Job())
-								}
+						job = t.TL.JobBackground(job)
+					}
 
-								return tl.JobSequence(job, st.Job())
-							})
-						})
-				}(step)
+					return job
+				}).
+				ShouldRunAfter(func(t *Task[Pipe]) error {
+					return t.RunSubtasks()
+				})
+
+			if step.Parallel {
+				job = tl.JobParallel(job, task.Job())
+			} else {
+				job = tl.JobSequence(job, task.Job())
 			}
+		}(step)
+	}
 
-			return nil
-		}).
-		ShouldRunAfter(func(t *Task[Pipe]) error {
-			return t.RunSubtasks()
-		})
+	return job
 }
 
 func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
@@ -192,7 +187,12 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 				}).
 				AppendEnvironment(command.Environment).
 				SetDir(command.Cwd).
-				SetRetries(command.Retry.Retries, command.Retry.Always, command.Retry.Delay.Duration).
+				SetRetries(
+					&CommandRetry{
+						Tries:  command.Retry.Retries,
+						Always: command.Retry.Always,
+						Delay:  command.Retry.Delay.Duration,
+					}).
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
 				SetJobWrapper(func(job Job, c *Command[Pipe]) Job {
 					if command.Delay.Duration > 0 {
