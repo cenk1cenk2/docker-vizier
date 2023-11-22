@@ -143,43 +143,20 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						c.EnsureIsAlive()
 					}
 
-					if command.RunAs != nil {
-						if command.RunAs.User != nil {
-							c.Log.Logf(
-								command.Log.Permissions,
-								"Will run the command with uid: %d",
-								*command.RunAs.User,
-							)
-
-							c.SetCredential(func(credential *syscall.Credential) {
-								credential.Uid = *command.RunAs.User
-							})
-						}
-
-						if command.RunAs.Group != nil {
-							c.Log.Logf(
-								command.Log.Permissions,
-								"Will run the command with gid: %d",
-								*command.RunAs.Group,
-							)
-
-							c.SetCredential(func(credential *syscall.Credential) {
-								credential.Gid = *command.RunAs.Group
-							})
-						}
-					}
-
+					return nil
+				}).
+				SetScript(func(c *Command[Pipe]) *CommandScript {
 					if command.Script != nil {
 						if command.Script.Inline != nil {
-							c.SetScript(&CommandScript{
+							return &CommandScript{
 								Inline: *command.Script.Inline,
 								Ctx:    command.Script.Ctx,
-							})
+							}
 						} else if command.Script.File != nil {
-							c.SetScript(&CommandScript{
+							return &CommandScript{
 								File: *command.Script.File,
 								Ctx:  command.Script.Ctx,
-							})
+							}
 						}
 					}
 
@@ -193,6 +170,33 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						Always: command.Retry.Always,
 						Delay:  command.Retry.Delay.Duration,
 					}).
+				SetCredential(func(c *Command[Pipe], credential *syscall.Credential) *syscall.Credential {
+					if command.RunAs != nil {
+						if command.RunAs.User != nil {
+							c.Log.Logf(
+								command.Log.Permissions,
+								"Will run the command with uid: %d",
+								*command.RunAs.User,
+							)
+
+							credential.Uid = *command.RunAs.User
+						}
+
+						if command.RunAs.Group != nil {
+							c.Log.Logf(
+								command.Log.Permissions,
+								"Will run the command with gid: %d",
+								*command.RunAs.Group,
+							)
+
+							credential.Gid = *command.RunAs.Group
+						}
+
+						return credential
+					}
+
+					return nil
+				}).
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
 				SetJobWrapper(func(job Job, c *Command[Pipe]) Job {
 					if command.Delay.Duration > 0 {
