@@ -2,7 +2,6 @@ package pipe
 
 import (
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -95,7 +94,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									step.Delay.String(),
 								)
 
-								job = TL.JobDelay(job, step.Delay.Duration)
+								job = t.TL.JobDelay(job, step.Delay.Duration)
 							}
 
 							if step.Background {
@@ -104,7 +103,7 @@ func StepGenerator(tl *TaskList[Pipe]) *Task[Pipe] {
 									"Task will run in the background.",
 								)
 
-								job = TL.JobBackground(job)
+								job = t.TL.JobBackground(job)
 							}
 
 							return job
@@ -150,17 +149,16 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 					}
 
 					if command.RunAs != nil {
-						c.Command.SysProcAttr = &syscall.SysProcAttr{
-							Credential: &syscall.Credential{},
-						}
-
 						if command.RunAs.User != nil {
 							c.Log.Logf(
 								command.Log.Permissions,
 								"Will run the command with uid: %d",
 								*command.RunAs.User,
 							)
-							c.Command.SysProcAttr.Credential.Uid = *command.RunAs.User
+
+							c.SetCredential(func(credential *syscall.Credential) {
+								credential.Uid = *command.RunAs.User
+							})
 						}
 
 						if command.RunAs.Group != nil {
@@ -169,61 +167,24 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 								"Will run the command with gid: %d",
 								*command.RunAs.Group,
 							)
-							c.Command.SysProcAttr.Credential.Gid = *command.RunAs.Group
+
+							c.SetCredential(func(credential *syscall.Credential) {
+								credential.Gid = *command.RunAs.Group
+							})
 						}
 					}
 
 					if command.Script != nil {
-						stdin, err := c.Command.StdinPipe()
-
-						defer func() {
-							stdin.Close()
-						}()
-
-						if err != nil {
-							return err
-						}
-
-						if command.Script.File != nil {
-							file, err := os.ReadFile(*command.Script.File)
-
-							if err != nil {
-								return err
-							}
-
-							tpl, err := InlineTemplate(string(file), command.Script.Ctx)
-
-							if err != nil {
-								return err
-							}
-
-							_, err = io.WriteString(stdin, tpl)
-
-							if err != nil {
-								return err
-							}
-						} else if command.Script.Inline != nil {
-							tpl, err := InlineTemplate(*command.Script.Inline, command.Script.Ctx)
-
-							if err != nil {
-								return err
-							}
-
-							_, err = io.WriteString(stdin, tpl)
-
-							if err != nil {
-								return err
-							}
-						}
-
-						if command.Pipe.Stdin && (command.Script.File != nil || command.Script.Inline != nil) {
-							_, err := io.Copy(stdin, os.Stdin)
-
-							if err != nil {
-								return err
-							}
-						} else if command.Pipe.Stdin {
-							c.Command.Stdin = os.Stdin
+						if command.Script.Inline != nil {
+							c.SetScript(&CommandScript{
+								Inline: *command.Script.Inline,
+								Ctx:    command.Script.Ctx,
+							})
+						} else if command.Script.File != nil {
+							c.SetScript(&CommandScript{
+								File: *command.Script.File,
+								Ctx:  command.Script.Ctx,
+							})
 						}
 					}
 
@@ -242,7 +203,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 							command.Delay.String(),
 						)
 
-						job = TL.JobDelay(job, command.Delay.Duration)
+						job = c.TL.JobDelay(job, command.Delay.Duration)
 					}
 
 					if command.Background {
@@ -252,7 +213,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 							c.GetFormattedCommand(),
 						)
 
-						job = TL.JobBackground(job)
+						job = c.TL.JobBackground(job)
 					}
 
 					return job

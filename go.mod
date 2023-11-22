@@ -5,7 +5,7 @@ go 1.21.4
 require (
 	github.com/invopop/jsonschema v0.12.0
 	github.com/urfave/cli/v2 v2.25.7
-	gitlab.kilic.dev/libraries/plumber/v5 v5.0.2
+	gitlab.kilic.dev/libraries/plumber/v5 v5.1.7
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -35,3 +35,5 @@ require (
 	golang.org/x/sys v0.14.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 )
+
+// replace gitlab.kilic.dev/libraries/plumber/v5 => /home/cenk/development/plumber
