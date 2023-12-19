@@ -5,7 +5,7 @@ go 1.21.5
 require (
 	github.com/invopop/jsonschema v0.12.0
 	github.com/urfave/cli/v2 v2.26.0
-	gitlab.kilic.dev/libraries/plumber/v5 v5.3.8
+	gitlab.kilic.dev/libraries/plumber/v5 v5.4.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -26,10 +26,10 @@ require (
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
 	github.com/workanator/go-floc/v3 v3.0.1 // indirect
-	github.com/xrash/smetrics v0.0.0-20201216005158-039620a65673 // indirect
+	github.com/xrash/smetrics v0.0.0-20231213231151-1d8dd44e695e // indirect
 	gitlab.kilic.dev/libraries/go-broadcaster v1.1.2 // indirect
 	gitlab.kilic.dev/libraries/go-utils/v2 v2.1.2 // indirect
-	golang.org/x/crypto v0.16.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/exp v0.0.0-20231214170342-aacd6d4b4611 // indirect
 	golang.org/x/net v0.19.0 // indirect
 	golang.org/x/sys v0.15.0 // indirect
