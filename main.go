@@ -17,7 +17,7 @@ func main() {
 				Usage:       DESCRIPTION,
 				Description: DESCRIPTION,
 				Flags:       p.AppendFlags(pipe.Flags),
-				Before: func(ctx *cli.Context) error {
+				Before: func(_ *cli.Context) error {
 					p.EnableTerminator()
 
 					return nil

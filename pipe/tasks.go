@@ -19,7 +19,7 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 	for _, step := range tl.Pipe.Config.Steps {
 		func(step VizierStep) {
 			task := tl.CreateTask(step.Name).
-				ShouldDisable(func(t *Task[Pipe]) bool {
+				ShouldDisable(func(_ *Task[Pipe]) bool {
 					return step.ShouldDisable.bool
 				}).
 				Set(func(t *Task[Pipe]) error {
@@ -127,7 +127,7 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 
 func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 	return t.CreateSubtask(command.Name).
-		ShouldDisable(func(t *Task[Pipe]) bool {
+		ShouldDisable(func(_ *Task[Pipe]) bool {
 			return command.ShouldDisable.bool
 		}).
 		Set(func(t *Task[Pipe]) error {
@@ -145,7 +145,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 					return nil
 				}).
-				SetScript(func(c *Command[Pipe]) *CommandScript {
+				SetScript(func(_ *Command[Pipe]) *CommandScript {
 					if command.Script != nil {
 						if command.Script.Inline != nil {
 							return &CommandScript{
@@ -234,7 +234,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[Pipe] {
 	return t.CreateSubtask(*permission.Path).
-		ShouldDisable(func(t *Task[Pipe]) bool {
+		ShouldDisable(func(_ *Task[Pipe]) bool {
 			return permission.ShouldDisable.bool
 		}).
 		Set(func(t *Task[Pipe]) error {
@@ -261,7 +261,7 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 	if template.Input != nil {
 		return t.CreateSubtask(fmt.Sprintf("%s -> %s", *template.Input, template.Output)).
-			ShouldDisable(func(t *Task[Pipe]) bool {
+			ShouldDisable(func(_ *Task[Pipe]) bool {
 				return template.ShouldDisable.bool
 			}).
 			Set(func(t *Task[Pipe]) error {
