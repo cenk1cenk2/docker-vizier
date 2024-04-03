@@ -1,6 +1,6 @@
 module gitlab.kilic.dev/docker/vizier
 
-go 1.22.1
+go 1.22.2
 
 require (
 	github.com/invopop/jsonschema v0.12.0
