@@ -4,7 +4,7 @@ go 1.22.6
 
 require (
 	github.com/invopop/jsonschema v0.12.0
-	github.com/urfave/cli/v2 v2.27.3
+	github.com/urfave/cli/v2 v2.27.4
 	gitlab.kilic.dev/libraries/plumber/v5 v5.4.20
 	gopkg.in/yaml.v3 v3.0.1
 )
