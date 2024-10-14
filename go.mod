@@ -1,18 +1,18 @@
 module gitlab.kilic.dev/docker/vizier
 
-go 1.23.1
+go 1.23.2
 
 require (
 	github.com/invopop/jsonschema v0.12.0
-	github.com/urfave/cli/v2 v2.27.4
-	gitlab.kilic.dev/libraries/plumber/v5 v5.6.1
+	github.com/urfave/cli/v2 v2.27.5
+	gitlab.kilic.dev/libraries/plumber/v5 v5.6.3
 	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cpuguy83/go-md2man/v2 v2.0.4 // indirect
+	github.com/cpuguy83/go-md2man/v2 v2.0.5 // indirect
 	github.com/creasty/defaults v1.8.0 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.3 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
