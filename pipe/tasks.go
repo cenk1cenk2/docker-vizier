@@ -8,37 +8,35 @@ import (
 	"strings"
 	"syscall"
 
-	. "gitlab.kilic.dev/libraries/plumber/v5"
+	. "github.com/cenk1cenk2/plumber/v6"
 )
 
-func StepGenerator(tl *TaskList[Pipe]) Job {
-	job := tl.CreateBasicJob(func() error {
-		return nil
-	})
+func StepGenerator(tl *TaskList) Job {
+	job := CreateEmptyJob()
 
-	for _, step := range tl.Pipe.Config.Steps {
+	for _, step := range P.Config.Steps {
 		func(step VizierStep) {
 			task := tl.CreateTask(step.Name).
-				ShouldDisable(func(_ *Task[Pipe]) bool {
+				ShouldDisable(func(_ *Task) bool {
 					return step.ShouldDisable.bool
 				}).
-				Set(func(t *Task[Pipe]) error {
+				Set(func(t *Task) error {
 					if len(step.Permissions) > 0 {
 						st := t.CreateSubtask("permissions").
-							ShouldRunAfter(func(t *Task[Pipe]) error {
+							ShouldRunAfter(func(t *Task) error {
 								return t.RunSubtasks()
 							}).
 							AddSelfToTheParentAsSequence()
 
 						for _, permission := range step.Permissions {
 							handleStepPermission(st, permission).
-								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+								AddSelfToTheParent(func(pt *Task, st *Task) {
 									pt.ExtendSubtask(func(job Job) Job {
 										if permission.Parallel {
-											return tl.JobParallel(job, st.Job())
+											return JobParallel(job, st.Job())
 										}
 
-										return tl.JobSequence(job, st.Job())
+										return JobSequence(job, st.Job())
 									})
 								})
 						}
@@ -46,20 +44,20 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 
 					if len(step.Templates) > 0 {
 						st := t.CreateSubtask("templates").
-							ShouldRunAfter(func(t *Task[Pipe]) error {
+							ShouldRunAfter(func(t *Task) error {
 								return t.RunSubtasks()
 							}).
 							AddSelfToTheParentAsSequence()
 
 						for _, template := range step.Templates {
 							handleTemplate(st, template).
-								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+								AddSelfToTheParent(func(pt *Task, st *Task) {
 									pt.ExtendSubtask(func(job Job) Job {
 										if template.Parallel {
-											return tl.JobParallel(job, st.Job())
+											return JobParallel(job, st.Job())
 										}
 
-										return tl.JobSequence(job, st.Job())
+										return JobSequence(job, st.Job())
 									})
 								})
 						}
@@ -67,20 +65,20 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 
 					if len(step.Commands) > 0 {
 						st := t.CreateSubtask().
-							ShouldRunAfter(func(t *Task[Pipe]) error {
+							ShouldRunAfter(func(t *Task) error {
 								return t.RunSubtasks()
 							}).
 							AddSelfToTheParentAsSequence()
 
 						for _, command := range step.Commands {
 							handleStepCommand(st, command).
-								AddSelfToTheParent(func(pt *Task[Pipe], st *Task[Pipe]) {
+								AddSelfToTheParent(func(pt *Task, st *Task) {
 									pt.ExtendSubtask(func(job Job) Job {
 										if command.Parallel {
-											return tl.JobParallel(job, st.Job())
+											return JobParallel(job, st.Job())
 										}
 
-										return tl.JobSequence(job, st.Job())
+										return JobSequence(job, st.Job())
 									})
 								})
 						}
@@ -88,7 +86,7 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 
 					return nil
 				}).
-				SetJobWrapper(func(job Job, t *Task[Pipe]) Job {
+				SetJobWrapper(func(job Job, t *Task) Job {
 					if step.Delay.Duration > 0 {
 						t.Log.Logf(
 							step.Log.Delay,
@@ -96,7 +94,7 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 							step.Delay.String(),
 						)
 
-						job = t.TL.JobDelay(job, step.Delay.Duration)
+						job = JobDelay(job, step.Delay.Duration)
 					}
 
 					if step.Background {
@@ -105,19 +103,19 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 							"Task will run in the background.",
 						)
 
-						job = t.TL.JobBackground(job)
+						job = JobBackground(job)
 					}
 
 					return job
 				}).
-				ShouldRunAfter(func(t *Task[Pipe]) error {
+				ShouldRunAfter(func(t *Task) error {
 					return t.RunSubtasks()
 				})
 
 			if step.Parallel {
-				job = tl.JobParallel(job, task.Job())
+				job = JobParallel(job, task.Job())
 			} else {
-				job = tl.JobSequence(job, task.Job())
+				job = JobSequence(job, task.Job())
 			}
 		}(step)
 	}
@@ -125,16 +123,16 @@ func StepGenerator(tl *TaskList[Pipe]) Job {
 	return job
 }
 
-func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
+func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 	return t.CreateSubtask(command.Name).
-		ShouldDisable(func(_ *Task[Pipe]) bool {
+		ShouldDisable(func(_ *Task) bool {
 			return command.ShouldDisable.bool
 		}).
-		Set(func(t *Task[Pipe]) error {
+		Set(func(t *Task) error {
 			run := strings.Split(command.Command, " ")
 
 			t.CreateCommand(run[0], run[1:]...).
-				Set(func(c *Command[Pipe]) error {
+				Set(func(c *Command) error {
 					if command.Health.IgnoreError {
 						c.SetIgnoreError()
 					}
@@ -145,7 +143,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 					return nil
 				}).
-				SetScript(func(_ *Command[Pipe]) *CommandScript {
+				SetScript(func(_ *Command) *CommandScript {
 					if command.Script != nil {
 						if command.Script.Inline != nil {
 							return &CommandScript{
@@ -170,7 +168,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 						Always: command.Retry.Always,
 						Delay:  command.Retry.Delay.Duration,
 					}).
-				SetCredential(func(c *Command[Pipe], credential *syscall.Credential) *syscall.Credential {
+				SetCredential(func(c *Command, credential *syscall.Credential) *syscall.Credential {
 					if command.RunAs != nil {
 						if command.RunAs.User != nil {
 							c.Log.Logf(
@@ -198,7 +196,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 					return nil
 				}).
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
-				SetJobWrapper(func(job Job, c *Command[Pipe]) Job {
+				SetJobWrapper(func(job Job, c *Command) Job {
 					if command.Delay.Duration > 0 {
 						t.Log.Logf(
 							command.Log.Delay,
@@ -207,7 +205,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 							command.Delay.String(),
 						)
 
-						job = c.TL.JobDelay(job, command.Delay.Duration)
+						job = JobDelay(job, command.Delay.Duration)
 					}
 
 					if command.Background {
@@ -217,7 +215,7 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 							c.GetFormattedCommand(),
 						)
 
-						job = c.TL.JobBackground(job)
+						job = JobBackground(job)
 					}
 
 					return job
@@ -227,17 +225,17 @@ func handleStepCommand(t *Task[Pipe], command VizierStepCommand) *Task[Pipe] {
 
 			return nil
 		}).
-		ShouldRunAfter(func(t *Task[Pipe]) error {
+		ShouldRunAfter(func(t *Task) error {
 			return t.RunCommandJobAsJobSequence()
 		})
 }
 
-func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[Pipe] {
+func handleStepPermission(t *Task, permission VizierStepPermission) *Task {
 	return t.CreateSubtask(*permission.Path).
-		ShouldDisable(func(_ *Task[Pipe]) bool {
+		ShouldDisable(func(_ *Task) bool {
 			return permission.ShouldDisable.bool
 		}).
-		Set(func(t *Task[Pipe]) error {
+		Set(func(t *Task) error {
 			if !permission.Recursive {
 				info, err := os.Lstat(*permission.Path)
 
@@ -258,13 +256,13 @@ func handleStepPermission(t *Task[Pipe], permission VizierStepPermission) *Task[
 		})
 }
 
-func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
+func handleTemplate(t *Task, template VizierStepTemplate) *Task {
 	if template.Input != nil {
 		return t.CreateSubtask(fmt.Sprintf("%s -> %s", *template.Input, template.Output)).
-			ShouldDisable(func(_ *Task[Pipe]) bool {
+			ShouldDisable(func(_ *Task) bool {
 				return template.ShouldDisable.bool
 			}).
-			Set(func(t *Task[Pipe]) error {
+			Set(func(t *Task) error {
 				tpl, err := os.ReadFile(*template.Input)
 
 				if err != nil {
@@ -275,7 +273,7 @@ func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 			})
 	} else if template.Inline != nil {
 		return t.CreateSubtask(fmt.Sprintf("%s -> %s", "inline", template.Output)).
-			Set(func(t *Task[Pipe]) error {
+			Set(func(t *Task) error {
 				return applyStepTemplateForInline(t, template, *template.Inline)
 			})
 	}
@@ -283,7 +281,7 @@ func handleTemplate(t *Task[Pipe], template VizierStepTemplate) *Task[Pipe] {
 	return nil
 }
 
-func applyStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, path string, info fs.FileInfo) error {
+func applyStepPermissionForPath(t *Task, permission VizierStepPermission, path string, info fs.FileInfo) error {
 	if permission.Chown.User != nil && permission.Chown.Group != nil {
 		err := os.Chown(path, int(*permission.Chown.User), int(*permission.Chown.Group))
 
@@ -315,7 +313,7 @@ func applyStepPermissionForPath(t *Task[Pipe], permission VizierStepPermission, 
 	return nil
 }
 
-func applyStepTemplateForInline(t *Task[Pipe], template VizierStepTemplate, tpl string) error {
+func applyStepTemplateForInline(t *Task, template VizierStepTemplate, tpl string) error {
 	render, err := InlineTemplate(tpl, template.Ctx)
 
 	if err != nil {

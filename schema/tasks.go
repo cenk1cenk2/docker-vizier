@@ -5,13 +5,13 @@ import (
 
 	"github.com/invopop/jsonschema"
 
+	. "github.com/cenk1cenk2/plumber/v6"
 	"gitlab.kilic.dev/docker/vizier/pipe"
-	. "gitlab.kilic.dev/libraries/plumber/v5"
 )
 
-func Generate(tl *TaskList[Pipe]) *Task[Pipe] {
+func Generate(tl *TaskList) *Task {
 	return tl.CreateTask("generate").
-		Set(func(t *Task[Pipe]) error {
+		Set(func(t *Task) error {
 			schema := jsonschema.Reflect(&pipe.VizierConfig{})
 
 			for k, v := range schema.Definitions {
@@ -51,11 +51,11 @@ func Generate(tl *TaskList[Pipe]) *Task[Pipe] {
 				return err
 			}
 
-			if err := os.WriteFile(t.Pipe.Output, json, 0600); err != nil {
+			if err := os.WriteFile(P.Output, json, 0600); err != nil {
 				return err
 			}
 
-			t.Log.Infof("Generated json schema: %s", t.Pipe.Output)
+			t.Log.Infof("Generated json schema: %s", P.Output)
 
 			return nil
 		})
