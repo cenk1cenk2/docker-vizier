@@ -34,7 +34,7 @@ var Flags = []cli.Flag{
 				return err
 			}
 
-			switch path.Ext(v) {
+			switch ext := path.Ext(v); ext {
 			case ".json":
 				err := json.Unmarshal(file, &P.Config)
 				if err != nil {
@@ -45,10 +45,11 @@ var Flags = []cli.Flag{
 				if err != nil {
 					return fmt.Errorf("Can not unmarshal from configuration file: %w", err)
 				}
-
+			default:
+				return fmt.Errorf("Can not handle configuration file with extension: %s", ext)
 			}
 
-			return fmt.Errorf("Can not handle configuration file with extension: %s", path.Ext(v))
+			return nil
 		},
 	},
 
