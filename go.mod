@@ -3,7 +3,7 @@ module gitlab.kilic.dev/docker/vizier
 go 1.25.1
 
 require (
-	github.com/cenk1cenk2/plumber/v6 v6.3.21
+	github.com/cenk1cenk2/plumber/v6 v6.3.22
 	github.com/invopop/jsonschema v0.13.0
 	github.com/urfave/cli/v3 v3.6.2
 	gopkg.in/yaml.v3 v3.0.1
@@ -26,10 +26,10 @@ require (
 	github.com/workanator/go-floc/v3 v3.0.1 // indirect
 	gitlab.kilic.dev/libraries/go-broadcaster v1.1.3 // indirect
 	gitlab.kilic.dev/libraries/go-utils/v2 v2.2.4 // indirect
-	golang.org/x/crypto v0.46.0 // indirect
-	golang.org/x/exp v0.0.0-20260212183809-81e46e3db34a // indirect
+	golang.org/x/crypto v0.48.0 // indirect
+	golang.org/x/exp v0.0.0-20260218203240-3dfff04db8fa // indirect
 	golang.org/x/sys v0.41.0 // indirect
-	golang.org/x/text v0.33.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 )
 
 // replace gitlab.kilic.dev/libraries/plumber/v5 => /home/cenk/development/plumber
