@@ -3,7 +3,7 @@ module gitlab.kilic.dev/docker/vizier
 go 1.25.1
 
 require (
-	github.com/cenk1cenk2/plumber/v6 v6.3.22
+	github.com/cenk1cenk2/plumber/v6 v6.3.23
 	github.com/invopop/jsonschema v0.13.0
 	github.com/urfave/cli/v3 v3.7.0
 	gopkg.in/yaml.v3 v3.0.1
