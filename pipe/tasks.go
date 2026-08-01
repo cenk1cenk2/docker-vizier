@@ -5,10 +5,10 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"strings"
 	"syscall"
 
 	. "github.com/cenk1cenk2/plumber/v6"
+	"github.com/mattn/go-shellwords"
 )
 
 func StepGenerator(tl *TaskList) Job {
@@ -129,7 +129,10 @@ func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 			return command.ShouldDisable.bool
 		}).
 		Set(func(t *Task) error {
-			run := strings.Split(command.Command, " ")
+			run, err := shellwords.Parse(command.Command)
+			if err != nil {
+				return fmt.Errorf("failed to parse command %q: %w", command.Command, err)
+			}
 
 			t.CreateCommand(run[0], run[1:]...).
 				Set(func(c *Command) error {
