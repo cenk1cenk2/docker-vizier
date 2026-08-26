@@ -1,7 +1,8 @@
 package pipe
 
 import (
-	"encoding/json"
+	"encoding/json/jsontext"
+	json "encoding/json/v2"
 	"fmt"
 	"os"
 	"os/user"
@@ -17,10 +18,10 @@ type SerializedDuration struct {
 	time.Duration
 }
 
-func (field *SerializedDuration) UnmarshalJSON(b []byte) error {
+func (field *SerializedDuration) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	var unmarshalled any
 
-	err := json.Unmarshal(b, &unmarshalled)
+	err := json.UnmarshalDecode(dec, &unmarshalled)
 
 	if err != nil {
 		return err
@@ -69,10 +70,10 @@ type TemplatableBoolean struct {
 	bool
 }
 
-func (field *TemplatableBoolean) UnmarshalJSON(b []byte) error {
+func (field *TemplatableBoolean) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	var unmarshalled any
 
-	err := json.Unmarshal(b, &unmarshalled)
+	err := json.UnmarshalDecode(dec, &unmarshalled)
 
 	if err != nil {
 		return err
@@ -131,7 +132,7 @@ func (field *TemplatableBoolean) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (field *VizierChown) UnmarshalJSON(b []byte) error {
+func (field *VizierChown) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	type A VizierChown
 	t := &struct {
 		User  *string `json:"user,omitempty"`
@@ -141,7 +142,7 @@ func (field *VizierChown) UnmarshalJSON(b []byte) error {
 		A: (*A)(field),
 	}
 
-	if err := json.Unmarshal(b, &t); err != nil {
+	if err := json.UnmarshalDecode(dec, t); err != nil {
 		return err
 	}
 
@@ -283,7 +284,7 @@ func (field *VizierChown) UnmarshalYAML(value *yaml.Node) error {
 	return nil
 }
 
-func (field *VizierChmod) UnmarshalJSON(b []byte) error {
+func (field *VizierChmod) UnmarshalJSONFrom(dec *jsontext.Decoder) error {
 	type A VizierChmod
 	t := &struct {
 		File *string `json:"file,omitempty" `
@@ -293,7 +294,7 @@ func (field *VizierChmod) UnmarshalJSON(b []byte) error {
 		A: (*A)(field),
 	}
 
-	if err := json.Unmarshal(b, &t); err != nil {
+	if err := json.UnmarshalDecode(dec, t); err != nil {
 		return err
 	}
 
