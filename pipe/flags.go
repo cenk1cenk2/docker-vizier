@@ -1,7 +1,7 @@
 package pipe
 
 import (
-	"encoding/json"
+	json "encoding/json/v2"
 	"fmt"
 	"os"
 	"path"
@@ -36,7 +36,7 @@ var Flags = []cli.Flag{
 
 			switch ext := path.Ext(v); ext {
 			case ".json":
-				err := json.Unmarshal(file, &P.Config)
+				err := json.Unmarshal(file, &P.Config, json.RejectUnknownMembers(true))
 				if err != nil {
 					return fmt.Errorf("Can not unmarshal from configuration file: %w", err)
 				}
@@ -63,7 +63,7 @@ var Flags = []cli.Flag{
 		Value:            "",
 		ValidateDefaults: false,
 		Validator: func(v string) error {
-			if err := json.Unmarshal([]byte(v), &P.Config); err != nil {
+			if err := json.Unmarshal([]byte(v), &P.Config, json.RejectUnknownMembers(true)); err != nil {
 				return fmt.Errorf("Can not unmarshal config: %w", err)
 			}
 
