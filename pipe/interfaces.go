@@ -62,9 +62,9 @@ type (
 	}
 
 	VizierStepCommandScript struct {
-		Inline *string     `json:"inline,omitempty" yaml:"inline" validate:"required_without=File"`
-		File   *string     `json:"file,omitempty"   yaml:"file"   validate:"required_without=Inline,omitempty,file"`
-		Ctx    interface{} `json:"ctx,omitempty"    yaml:"ctx"`
+		Inline *string `json:"inline,omitempty" yaml:"inline" validate:"required_without=File"`
+		File   *string `json:"file,omitempty"   yaml:"file"   validate:"required_without=Inline,omitempty,file"`
+		Ctx    any     `json:"ctx,omitempty"    yaml:"ctx"`
 	}
 
 	VizierStepCommandHealth struct {
@@ -101,12 +101,12 @@ type (
 
 	VizierStepTemplate struct {
 		Inline        *string                    `json:"inline,omitempty"        yaml:"inline"        validate:"required_without=Input"`
-		Input         *string                    `json:"input,omitempty"         yaml:"input"         validate:"required_without=Inline,file"`
-		Output        string                     `json:"output,omitempty"        yaml:"output"        validate:"required"                     jsonschema:"required"`
-		Ctx           interface{}                `json:"ctx,omitempty"           yaml:"ctx"`
+		Input         *string                    `json:"input,omitempty"         yaml:"input"         validate:"required_without=Inline,omitempty,file"`
+		Output        string                     `json:"output,omitempty"        yaml:"output"        validate:"required"                               jsonschema:"required"`
+		Ctx           any                        `json:"ctx,omitempty"           yaml:"ctx"`
 		Chmod         VizierChmod                `json:"chmod,omitempty"         yaml:"chmod"`
 		Chown         VizierChown                `json:"chown,omitempty"         yaml:"chown"         validate:"omitempty"`
-		ShouldDisable TemplatableBoolean         `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty"                    jsonschema:"oneof_type=string;boolean"`
+		ShouldDisable TemplatableBoolean         `json:"shouldDisable,omitempty" yaml:"shouldDisable" validate:"omitempty"                              jsonschema:"oneof_type=string;boolean"`
 		Parallel      bool                       `json:"parallel,omitempty"      yaml:"parallel"`
 		Log           VizierStepTemplateLogLevel `json:"log,omitempty"           yaml:"log"           validate:"omitempty"`
 	}
