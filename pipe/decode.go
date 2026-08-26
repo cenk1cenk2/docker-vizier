@@ -18,7 +18,7 @@ type SerializedDuration struct {
 }
 
 func (field *SerializedDuration) UnmarshalJSON(b []byte) error {
-	var unmarshalled interface{}
+	var unmarshalled any
 
 	err := json.Unmarshal(b, &unmarshalled)
 
@@ -42,7 +42,7 @@ func (field *SerializedDuration) UnmarshalJSON(b []byte) error {
 }
 
 func (field *SerializedDuration) UnmarshalYAML(value *yaml.Node) error {
-	var unmarshalled interface{}
+	var unmarshalled any
 
 	err := value.Decode(&unmarshalled)
 
@@ -70,7 +70,7 @@ type TemplatableBoolean struct {
 }
 
 func (field *TemplatableBoolean) UnmarshalJSON(b []byte) error {
-	var unmarshalled interface{}
+	var unmarshalled any
 
 	err := json.Unmarshal(b, &unmarshalled)
 
@@ -101,7 +101,7 @@ func (field *TemplatableBoolean) UnmarshalJSON(b []byte) error {
 }
 
 func (field *TemplatableBoolean) UnmarshalYAML(value *yaml.Node) error {
-	var unmarshalled interface{}
+	var unmarshalled any
 
 	err := value.Decode(&unmarshalled)
 

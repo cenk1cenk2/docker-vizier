@@ -1,6 +1,6 @@
 module gitlab.kilic.dev/docker/vizier
 
-go 1.25.5
+go 1.27.0
 
 require (
 	github.com/cenk1cenk2/plumber/v6 v6.4.11
