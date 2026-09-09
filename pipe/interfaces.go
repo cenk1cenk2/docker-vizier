@@ -3,7 +3,7 @@ package pipe
 import (
 	"os"
 
-	. "github.com/cenk1cenk2/plumber/v6"
+	. "github.com/cenk1cenk2/plumber/v7"
 )
 
 //revive:disable:line-length-limit

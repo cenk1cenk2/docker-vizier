@@ -1,17 +1,19 @@
 package schema
 
 import (
+	"context"
+	"fmt"
 	"os"
 
 	"github.com/invopop/jsonschema"
 
-	. "github.com/cenk1cenk2/plumber/v6"
+	. "github.com/cenk1cenk2/plumber/v7"
 	"gitlab.kilic.dev/docker/vizier/pipe"
 )
 
 func Generate(tl *TaskList) *Task {
 	return tl.CreateTask("generate").
-		Set(func(t *Task) error {
+		Set(func(_ context.Context, t *Task) error {
 			schema := jsonschema.Reflect(&pipe.VizierConfig{})
 
 			for k, v := range schema.Definitions {
@@ -55,7 +57,7 @@ func Generate(tl *TaskList) *Task {
 				return err
 			}
 
-			t.Log.Infof("Generated json schema: %s", P.Output)
+			t.Log.Info(fmt.Sprintf("Generated json schema: %s", P.Output))
 
 			return nil
 		})

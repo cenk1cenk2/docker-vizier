@@ -5,7 +5,7 @@ import (
 
 	"github.com/urfave/cli/v3"
 
-	. "github.com/cenk1cenk2/plumber/v6"
+	. "github.com/cenk1cenk2/plumber/v7"
 	"gitlab.kilic.dev/docker/vizier/pipe"
 	"gitlab.kilic.dev/docker/vizier/schema"
 )
@@ -45,6 +45,7 @@ func main() {
 							)
 						},
 					},
+					DocsCommand(p),
 				},
 			}
 		}).

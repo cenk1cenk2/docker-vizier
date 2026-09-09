@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	. "github.com/cenk1cenk2/plumber/v6"
+	. "github.com/cenk1cenk2/plumber/v7"
 	"gopkg.in/yaml.v3"
 )
 
