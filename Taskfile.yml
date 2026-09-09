@@ -39,8 +39,8 @@ tasks:
     env:
       LOG_LEVEL: trace
     cmds:
-      - go run . MARKDOWN_DOC
-      - go run . MARKDOWN_EMBED
+      - go run . docs markdown
+      - go run . docs embed
 
   help:
     desc: Generates help for the application.

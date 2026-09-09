@@ -1,13 +1,14 @@
 package pipe
 
 import (
+	"context"
 	"fmt"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"syscall"
 
-	. "github.com/cenk1cenk2/plumber/v6"
+	. "github.com/cenk1cenk2/plumber/v7"
 	"github.com/mattn/go-shellwords"
 )
 
@@ -20,11 +21,11 @@ func StepGenerator(tl *TaskList) Job {
 				ShouldDisable(func(_ *Task) bool {
 					return step.ShouldDisable.bool
 				}).
-				Set(func(t *Task) error {
+				Set(func(ctx context.Context, t *Task) error {
 					if len(step.Permissions) > 0 {
 						st := t.CreateSubtask("permissions").
-							ShouldRunAfter(func(t *Task) error {
-								return t.RunSubtasks()
+							ShouldRunAfter(func(ctx context.Context, t *Task) error {
+								return t.RunSubtasks(ctx)
 							}).
 							AddSelfToTheParentAsSequence()
 
@@ -44,8 +45,8 @@ func StepGenerator(tl *TaskList) Job {
 
 					if len(step.Templates) > 0 {
 						st := t.CreateSubtask("templates").
-							ShouldRunAfter(func(t *Task) error {
-								return t.RunSubtasks()
+							ShouldRunAfter(func(ctx context.Context, t *Task) error {
+								return t.RunSubtasks(ctx)
 							}).
 							AddSelfToTheParentAsSequence()
 
@@ -65,8 +66,8 @@ func StepGenerator(tl *TaskList) Job {
 
 					if len(step.Commands) > 0 {
 						st := t.CreateSubtask().
-							ShouldRunAfter(func(t *Task) error {
-								return t.RunSubtasks()
+							ShouldRunAfter(func(ctx context.Context, t *Task) error {
+								return t.RunSubtasks(ctx)
 							}).
 							AddSelfToTheParentAsSequence()
 
@@ -88,28 +89,29 @@ func StepGenerator(tl *TaskList) Job {
 				}).
 				SetJobWrapper(func(job Job, t *Task) Job {
 					if step.Delay.Duration > 0 {
-						t.Log.Logf(
-							step.Log.Delay,
-							"Task will run with delay: %s",
-							step.Delay.String(),
+						t.Log.Log(
+							context.Background(),
+							step.Log.Delay.GetLogLevel(),
+							fmt.Sprintf("Task will run with delay: %s", step.Delay.String()),
 						)
 
 						job = JobDelay(job, step.Delay.Duration)
 					}
 
 					if step.Background {
-						t.Log.Logf(
-							step.Log.Background,
+						t.Log.Log(
+							context.Background(),
+							step.Log.Background.GetLogLevel(),
 							"Task will run in the background.",
 						)
 
-						job = JobBackground(job)
+						job = JobBackground(job, t.Log)
 					}
 
 					return job
 				}).
-				ShouldRunAfter(func(t *Task) error {
-					return t.RunSubtasks()
+				ShouldRunAfter(func(ctx context.Context, t *Task) error {
+					return t.RunSubtasks(ctx)
 				})
 
 			if step.Parallel {
@@ -128,14 +130,14 @@ func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 		ShouldDisable(func(_ *Task) bool {
 			return command.ShouldDisable.bool
 		}).
-		Set(func(t *Task) error {
+		Set(func(ctx context.Context, t *Task) error {
 			run, err := shellwords.Parse(command.Command)
 			if err != nil {
 				return fmt.Errorf("failed to parse command %q: %w", command.Command, err)
 			}
 
 			t.CreateCommand(run[0], run[1:]...).
-				Set(func(c *Command) error {
+				Set(func(_ context.Context, c *Command) error {
 					if command.Health.IgnoreError {
 						c.SetIgnoreError()
 					}
@@ -174,20 +176,20 @@ func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 				SetCredential(func(c *Command, credential *syscall.Credential) *syscall.Credential {
 					if command.RunAs != nil {
 						if command.RunAs.User != nil {
-							c.Log.Logf(
-								command.Log.Permissions,
-								"Will run the command with uid: %d",
-								*command.RunAs.User,
+							c.Log.Log(
+								context.Background(),
+								command.Log.Permissions.GetLogLevel(),
+								fmt.Sprintf("Will run the command with uid: %d", *command.RunAs.User),
 							)
 
 							credential.Uid = *command.RunAs.User
 						}
 
 						if command.RunAs.Group != nil {
-							c.Log.Logf(
-								command.Log.Permissions,
-								"Will run the command with gid: %d",
-								*command.RunAs.Group,
+							c.Log.Log(
+								context.Background(),
+								command.Log.Permissions.GetLogLevel(),
+								fmt.Sprintf("Will run the command with gid: %d", *command.RunAs.Group),
 							)
 
 							credential.Gid = *command.RunAs.Group
@@ -201,24 +203,23 @@ func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 				SetLogLevel(command.Log.Stdout, command.Log.Stderr, command.Log.Lifetime).
 				SetJobWrapper(func(job Job, c *Command) Job {
 					if command.Delay.Duration > 0 {
-						t.Log.Logf(
-							command.Log.Delay,
-							"Command will run with delay: %s -> %s",
-							c.GetFormattedCommand(),
-							command.Delay.String(),
+						t.Log.Log(
+							context.Background(),
+							command.Log.Delay.GetLogLevel(),
+							fmt.Sprintf("Command will run with delay: %s -> %s", c.GetFormattedCommand(), command.Delay.String()),
 						)
 
 						job = JobDelay(job, command.Delay.Duration)
 					}
 
 					if command.Background {
-						t.Log.Logf(
-							command.Log.Background,
-							"Command will run in the background: %s",
-							c.GetFormattedCommand(),
+						t.Log.Log(
+							context.Background(),
+							command.Log.Background.GetLogLevel(),
+							fmt.Sprintf("Command will run in the background: %s", c.GetFormattedCommand()),
 						)
 
-						job = JobBackground(job)
+						job = JobBackground(job, c.Log)
 					}
 
 					return job
@@ -228,8 +229,8 @@ func handleStepCommand(t *Task, command VizierStepCommand) *Task {
 
 			return nil
 		}).
-		ShouldRunAfter(func(t *Task) error {
-			return t.RunCommandJobAsJobSequence()
+		ShouldRunAfter(func(ctx context.Context, t *Task) error {
+			return t.RunCommandJobAsJobSequence(ctx)
 		})
 }
 
@@ -238,7 +239,7 @@ func handleStepPermission(t *Task, permission VizierStepPermission) *Task {
 		ShouldDisable(func(_ *Task) bool {
 			return permission.ShouldDisable.bool
 		}).
-		Set(func(t *Task) error {
+		Set(func(ctx context.Context, t *Task) error {
 			if !permission.Recursive {
 				info, err := os.Lstat(*permission.Path)
 
@@ -246,7 +247,7 @@ func handleStepPermission(t *Task, permission VizierStepPermission) *Task {
 					return err
 				}
 
-				return applyStepPermissionForPath(t, permission, *permission.Path, info)
+				return applyStepPermissionForPath(ctx, t, permission, *permission.Path, info)
 			}
 
 			return filepath.Walk(*permission.Path, func(path string, info fs.FileInfo, err error) error {
@@ -254,7 +255,7 @@ func handleStepPermission(t *Task, permission VizierStepPermission) *Task {
 					return err
 				}
 
-				return applyStepPermissionForPath(t, permission, path, info)
+				return applyStepPermissionForPath(ctx, t, permission, path, info)
 			})
 		})
 }
@@ -265,26 +266,26 @@ func handleTemplate(t *Task, template VizierStepTemplate) *Task {
 			ShouldDisable(func(_ *Task) bool {
 				return template.ShouldDisable.bool
 			}).
-			Set(func(t *Task) error {
+			Set(func(ctx context.Context, t *Task) error {
 				tpl, err := os.ReadFile(*template.Input)
 
 				if err != nil {
 					return err
 				}
 
-				return applyStepTemplateForInline(t, template, string(tpl))
+				return applyStepTemplateForInline(ctx, t, template, string(tpl))
 			})
 	} else if template.Inline != nil {
 		return t.CreateSubtask(fmt.Sprintf("%s -> %s", "inline", template.Output)).
-			Set(func(t *Task) error {
-				return applyStepTemplateForInline(t, template, *template.Inline)
+			Set(func(ctx context.Context, t *Task) error {
+				return applyStepTemplateForInline(ctx, t, template, *template.Inline)
 			})
 	}
 
 	return nil
 }
 
-func applyStepPermissionForPath(t *Task, permission VizierStepPermission, path string, info fs.FileInfo) error {
+func applyStepPermissionForPath(ctx context.Context, t *Task, permission VizierStepPermission, path string, info fs.FileInfo) error {
 	if permission.Chown.User != nil && permission.Chown.Group != nil {
 		err := os.Chown(path, int(*permission.Chown.User), int(*permission.Chown.Group))
 
@@ -292,7 +293,7 @@ func applyStepPermissionForPath(t *Task, permission VizierStepPermission, path s
 			return err
 		}
 
-		t.Log.Logf(permission.Log.Chown, "Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group)
+		t.Log.Log(ctx, permission.Log.Chown.GetLogLevel(), fmt.Sprintf("Changed the owner of path: %s -> %d:%d", path, *permission.Chown.User, *permission.Chown.Group))
 	}
 
 	if info.IsDir() && permission.Chmod.Dir != nil {
@@ -302,7 +303,7 @@ func applyStepPermissionForPath(t *Task, permission VizierStepPermission, path s
 			return err
 		}
 
-		t.Log.Logf(permission.Log.Chmod, "Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir)
+		t.Log.Log(ctx, permission.Log.Chmod.GetLogLevel(), fmt.Sprintf("Changed the permission of directory: %s -> %s", path, *permission.Chmod.Dir))
 	} else if !info.IsDir() && permission.Chmod.File != nil {
 		err := os.Chmod(path, *permission.Chmod.File)
 
@@ -310,21 +311,21 @@ func applyStepPermissionForPath(t *Task, permission VizierStepPermission, path s
 			return err
 		}
 
-		t.Log.Logf(permission.Log.Chmod, "Changed the permission of file: %s -> %s", path, *permission.Chmod.File)
+		t.Log.Log(ctx, permission.Log.Chmod.GetLogLevel(), fmt.Sprintf("Changed the permission of file: %s -> %s", path, *permission.Chmod.File))
 	}
 
 	return nil
 }
 
-func applyStepTemplateForInline(t *Task, template VizierStepTemplate, tpl string) error {
+func applyStepTemplateForInline(ctx context.Context, t *Task, template VizierStepTemplate, tpl string) error {
 	render, err := InlineTemplate(tpl, template.Ctx)
 
 	if err != nil {
 		return err
 	}
 
-	t.Log.Logf(template.Log.Generation, "Created file from template.")
-	t.Log.Logf(template.Log.Context, "Injected context: %+v", template.Ctx)
+	t.Log.Log(ctx, template.Log.Generation.GetLogLevel(), "Created file from template.")
+	t.Log.Log(ctx, template.Log.Context.GetLogLevel(), fmt.Sprintf("Injected context: %+v", template.Ctx))
 
 	if err := os.WriteFile(template.Output, []byte(render), 0600); err != nil {
 		return err
@@ -340,5 +341,5 @@ func applyStepTemplateForInline(t *Task, template VizierStepTemplate, tpl string
 		},
 		Recursive: false,
 	}).
-		Run()
+		Run(ctx)
 }
