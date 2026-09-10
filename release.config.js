@@ -1,25 +1,6 @@
 module.exports = {
-  branches: [
-    "main",
-    "master",
-    "next",
-    "next-major",
-    {
-      name: "alpha",
-      prerelease: true,
-    },
-    {
-      name: "beta",
-      prerelease: true,
-    },
-    {
-      name: "rc",
-      prerelease: true,
-    },
-  ],
+  extends: "@cenk1cenk2/semantic-release-config",
   plugins: [
-    "@semantic-release/commit-analyzer",
-    "@semantic-release/release-notes-generator",
     [
       "semantic-release-replace-plugin",
       {
@@ -41,18 +22,12 @@ module.exports = {
         ],
       },
     ],
-    "@semantic-release/changelog",
     [
-      "@semantic-release/git",
+      "@cenk1cenk2/semantic-release-config/presets/tag",
       {
-        assets: ["CHANGELOG.md", "README.md", "docs/"],
+        assets: { extend: ["version.go"] },
       },
     ],
-    [
-      "@semantic-release/exec",
-      {
-        publishCmd: "echo '${nextRelease.version}' > .tags",
-      },
-    ],
+    "@semantic-release/gitlab",
   ],
 };
