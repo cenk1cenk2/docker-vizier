@@ -3,7 +3,7 @@ module gitlab.kilic.dev/docker/vizier
 go 1.27.0
 
 require (
-	github.com/cenk1cenk2/plumber/v7 v7.2.6
+	github.com/cenk1cenk2/plumber/v7 v7.2.7
 	github.com/invopop/jsonschema v0.14.0
 	github.com/mattn/go-shellwords v1.0.15
 	github.com/urfave/cli/v3 v3.13.0
@@ -35,7 +35,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.1 // indirect
 	github.com/rivo/uniseg v0.4.7 // indirect
-	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
+	github.com/xo/terminfo v1.0.0 // indirect
 	go.yaml.in/yaml/v4 v4.0.0-rc.2 // indirect
 	golang.org/x/crypto v0.57.0 // indirect
 	golang.org/x/sync v0.23.0 // indirect
