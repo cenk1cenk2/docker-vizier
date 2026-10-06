@@ -5,8 +5,8 @@ go 1.27.0
 require (
 	github.com/cenk1cenk2/plumber/v7 v7.2.7
 	github.com/invopop/jsonschema v0.14.0
-	github.com/mattn/go-shellwords v1.0.15
-	github.com/urfave/cli/v3 v3.13.0
+	github.com/mattn/go-shellwords v1.0.16
+	github.com/urfave/cli/v3 v3.14.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
