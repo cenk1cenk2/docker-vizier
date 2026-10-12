@@ -1,6 +1,6 @@
 # cenk1cenk2/grand-vizier
 
-[![pipeline status](https://gitlab.kilic.dev/docker/vizier/badges/master/pipeline.svg)](https://gitlab.kilic.dev/docker/vizier/-/commits/master) [![Docker Pulls](https://img.shields.io/docker/pulls/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![GitHub last commit](https://img.shields.io/github/last-commit/cenk1cenk2/vizier)](https://github.com/cenk1cenk2/vizier)
+[![pipeline status](https://gitlab.kilic.dev/docker/vizier/badges/main/pipeline.svg)](https://gitlab.kilic.dev/docker/vizier/-/commits/main) [![Docker Pulls](https://img.shields.io/docker/pulls/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![Docker Image Version (latest by date)](https://img.shields.io/docker/v/cenk1cenk2/vizier)](https://hub.docker.com/repository/docker/cenk1cenk2/vizier) [![GitHub last commit](https://img.shields.io/github/last-commit/cenk1cenk2/vizier)](https://github.com/cenk1cenk2/vizier)
 
 ## Description
 
